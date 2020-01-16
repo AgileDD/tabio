@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import sys
+sys.path.append('../IQC_Classification')
+
 import textExtract
 
 from pascalvoc import BBox
@@ -128,16 +131,9 @@ if __name__ == '__main__':
 
     im = np.array(Image.open(base_fname+'.jpg'), dtype=np.uint8)
 
-    mask = Image.new("L", (im.shape[1], im.shape[0]))
-    mask_draw = ImageDraw.Draw(mask)
-    mask_draw.rectangle([(0,0),mask.size], fill=255)
-
     fig, ax = plt.subplots(1)
 
     ax.imshow(im)
-
-    char_widths = []
-    char_heights = []
 
     lines = read_csv(base_csv_fname+'.csv')
 
@@ -163,12 +159,6 @@ if __name__ == '__main__':
                 (b.top-b.bottom))
             ax.add_patch(rect)
 
-            #add char to mask
-            mask_draw.rectangle([b.left, b.top, b.right, b.bottom], fill=0)
-
-            char_widths.append(b.right - b.left)
-            char_heights.append(b.top - b.bottom)
-
         print(f"{line_category}\t\t{line.text}")
 
         #draw red rectangle around whole line
@@ -179,16 +169,6 @@ if __name__ == '__main__':
             (b.top-b.bottom),
             linewidth=1,edgecolor='r',facecolor='none')
         ax.add_patch(rect)
-
-
-
-    #sys.exit(0)
-
-    char_width = statistics.mean(char_widths)
-    char_height = statistics.mean(char_heights)
-    print(char_width)
-    print(char_height)
-
 
 
 
@@ -212,9 +192,3 @@ if __name__ == '__main__':
     plt.show()
     fig.savefig('fig.jpg', bbox_inches='tight', dpi=150)
 
-
-    new_width = (int)(2.0 * mask.width / char_width)
-    new_height = (int)(2.0 * mask.height / char_height)
-
-    mask = mask.resize((new_width, new_height), resample=Image.BICUBIC)
-    mask.save('../labeled-data/Tarfaya/'+doc_hash+'_'+str(page_number)+'_'+str(page_number)+'_mask.png', 'PNG')
