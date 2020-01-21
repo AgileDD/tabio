@@ -40,6 +40,7 @@ Line = namedtuple('Line', ['text', 'bboxes', 'bbox'])
 
 #returns a list of Line structures
 # multiple lines may be physically next to eachother on the page
+# each line is separated by a '\n' char in the csv
 def read_csv(fname):
     obj = textExtract.csvfile2Object(fname)
     text = textExtract.getText(obj)
@@ -75,6 +76,53 @@ def read_csv(fname):
 
     return lines
 
+# returns a list of Line structures
+# each Line contains chars that share the same Y (+- epsilon)
+# order of the input chars and lines is ignored
+def group_lines_spacially(lines):
+    size = mean_char_size(lines)
+    y_separation = size[1] * .8
+
+    # ignore the lines in the csv
+    # find lines based on spacial location
+    chars = []
+    for line in lines:
+        for c, b in zip(line.text, line.bboxes):
+            if b is not None:
+                chars.append((c, b))
+
+    chars = sorted(chars, key=lambda x: x[1].top)
+
+    spacial_lines = []
+
+    line_chars = []
+    line_bboxes = []
+    line_top = chars[0][1].top
+    line_bbox = None
+
+    for c, b in chars:
+        area = (b.bottom - b.top) * (b.right - b.left)
+        #print(area)
+        if area == 0.0:
+            continue
+
+        if b.top < (line_top + y_separation):
+            line_chars.append(c)
+            line_bboxes.append(b)
+            line_bbox = bbox_union(line_bbox, b)
+        else:
+            line = Line(''.join(line_chars), line_bboxes, line_bbox)
+            spacial_lines.append(line)
+            line_bboxes = [b]
+            line_chars = [c]
+            line_bbox = b
+            line_top = b.top
+
+
+    line = Line(''.join(line_chars), line_bboxes, line_bbox)
+    spacial_lines.append(line)
+    return spacial_lines
+
 
 def is_bbox_inside(outside, inside):
     return (outside.left < inside.left
@@ -85,7 +133,7 @@ def is_bbox_inside(outside, inside):
 def find(f, seq):
     """Return first item in sequence where f(item) == True."""
     for item in seq:
-      if f(item): 
+      if f(item):
         return item
     return None
 
