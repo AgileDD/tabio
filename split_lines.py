@@ -1,4 +1,5 @@
-from csv_file import read_csv, mean_char_size, Line, bbox_union, group_lines_spacially, is_bbox_inside
+from csv_file import read_csv, mean_char_size, Line, bbox_union, group_lines_spacially, is_bbox_inside, remove_margin
+import csv_file
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -16,7 +17,7 @@ base_csv_fname = '../labeled-data/Tarfaya/'+doc_csv_hash+'_'+str(page_number)+'_
 
 
 lines = read_csv(base_csv_fname+'.csv')
-spacial_lines = group_lines_spacially(lines)
+spacial_lines = remove_margin(group_lines_spacially(lines))
 labeled_boxes = pascalvoc.read(base_fname+'.xml')
 
 def classify_line(line):

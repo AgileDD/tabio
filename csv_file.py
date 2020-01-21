@@ -149,6 +149,37 @@ def mean_char_size(lines):
 
     return (statistics.mean(char_widths), statistics.mean(char_heights))
 
+# detects any margins on the top and left side of the chars
+# shifts all the chars (left, and up) to remove the margin
+def remove_margin(lines):
+    min_x = float("inf")
+    min_y = float("inf")
+
+    for line in lines:
+        for bbox in line.bboxes:
+            min_x = min(min_x, bbox.left)
+            min_y = min(min_y, bbox.top)
+
+    result = []
+    for line in lines:
+        shifted_bboxes = []
+        for bbox in line.bboxes:
+            shifted_bboxes.append(BBox(
+                left=bbox.left-min_x,
+                top=bbox.top-min_y,
+                right=bbox.right-min_x,
+                bottom=bbox.bottom-min_y))
+
+        result.append(Line(
+            text=line.text,
+            bboxes=shifted_bboxes,
+            bbox=BBox(
+                left=line.bbox.left-min_x,
+                top=line.bbox.top-min_y,
+                right=line.bbox.right-min_x,
+                bottom=line.bbox.bottom-min_y)))
+
+    return result
 
 def draw(lines, ax):
     for line in lines:
