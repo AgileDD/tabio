@@ -36,31 +36,7 @@ for line in spacial_lines:
         line_category = classify_line(line)
         print(line_category)
 
-        for char, bbox in zip(line.text, line.bboxes):
-            if bbox is None:
-                continue
-
-            #shade over the char in blue
-            b = bbox
-            rect = patches.Rectangle(
-                (b.left, b.bottom),
-                (b.right-b.left),
-                (b.top-b.bottom))
-            ax.add_patch(rect)
-
-
-        #print(f"{line_category}\t\t{line.text}")
-
-        #draw red rectangle around whole line
-        b = line.bbox
-        if b is None:
-            continue
-        rect = patches.Rectangle(
-            (b.left, b.bottom),
-            (b.right-b.left),
-            (b.top-b.bottom),
-            linewidth=1,edgecolor='r',facecolor='none')
-        ax.add_patch(rect)
+csv_file.draw(spacial_lines, ax)
 
 pascalvoc.draw(labeled_boxes, ax)
 

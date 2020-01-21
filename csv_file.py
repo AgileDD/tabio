@@ -150,6 +150,37 @@ def mean_char_size(lines):
     return (statistics.mean(char_widths), statistics.mean(char_heights))
 
 
+def draw(lines, ax):
+    for line in lines:
+
+        for char, bbox in zip(line.text, line.bboxes):
+            if bbox is None:
+                continue
+
+            #shade over the char in blue
+            b = bbox
+            rect = patches.Rectangle(
+                (b.left, b.bottom),
+                (b.right-b.left),
+                (b.top-b.bottom))
+            ax.add_patch(rect)
+
+        #draw red rectangle around whole line
+        b = line.bbox
+        rect = patches.Rectangle(
+            (b.left, b.bottom),
+            (b.right-b.left),
+            (b.top-b.bottom),
+            linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
+
+    #draw arrows between lines to show order
+    for a, b in zip(lines, lines[1:]):
+        dx = b.bbox.left - a.bbox.left
+        dy = b.bbox.top - a.bbox.bottom
+        ax.arrow(a.bbox.left, a.bbox.bottom, dx, dy, width=3, shape='full', length_includes_head=True)
+
+
 if __name__ == '__main__':
     doc_hash = '99e91ba482e98894f5c8da17dde5b259'
     doc_csv_hash = 'baad73b47f22e16520e04b02455c5817'
@@ -199,33 +230,11 @@ if __name__ == '__main__':
                 if found_category is not None:
                     line_category = found_category.name
 
-            #shade over the char in blue
-            b = bbox
-            rect = patches.Rectangle(
-                (b.left, b.bottom),
-                (b.right-b.left),
-                (b.top-b.bottom))
-            ax.add_patch(rect)
-
         print(f"{line_category}\t\t{line.text}")
 
-        #draw red rectangle around whole line
-        b = line.bbox
-        rect = patches.Rectangle(
-            (b.left, b.bottom),
-            (b.right-b.left),
-            (b.top-b.bottom),
-            linewidth=1,edgecolor='r',facecolor='none')
-        ax.add_patch(rect)
 
 
-
-    #draw arrows between lines to show order
-    for a, b in zip(lines, lines[1:]):
-        dx = b.bbox.left - a.bbox.left
-        dy = b.bbox.bottom - a.bbox.top
-        ax.arrow(a.bbox.left, a.bbox.top, dx, dy, width=3, shape='full', length_includes_head=True)
-
+    draw(lines, ax)
     pascalvoc.draw(labeled_boxes, ax)
 
     plt.show()
