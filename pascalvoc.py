@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as et
 from collections import namedtuple
+import matplotlib.patches as patches
 
 BBox = namedtuple('BoundingBox', ['left', 'bottom', 'right', 'top'])
 NamedBox = namedtuple('NamedBox', ['name', 'bbox'])
@@ -24,3 +25,13 @@ def read(fname):
         box_names.append(NamedBox(name, bbox=BBox(xmin, ymin, xmax, ymax)))
 
     return box_names
+
+def draw(labeled_boxes, ax):
+    for box in labeled_boxes:
+        b = box.bbox
+        rect = patches.Rectangle(
+            (b.left, b.bottom),
+            (b.right-b.left),
+            (b.top-b.bottom),
+            linewidth=1,edgecolor='g',facecolor='none')
+        ax.add_patch(rect)

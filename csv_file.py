@@ -178,16 +178,7 @@ if __name__ == '__main__':
         dy = b.bbox.bottom - a.bbox.top
         ax.arrow(a.bbox.left, a.bbox.top, dx, dy, width=3, shape='full', length_includes_head=True)
 
-    #draw labeled boxes
-    for box in labeled_boxes:
-
-        b = box.bbox
-        rect = patches.Rectangle(
-            (b.left, b.bottom),
-            (b.right-b.left),
-            (b.top-b.bottom),
-            linewidth=1,edgecolor='g',facecolor='none')
-        ax.add_patch(rect)
+    pascalvoc.draw(labeled_boxes, ax)
 
     plt.show()
     fig.savefig('fig.jpg', bbox_inches='tight', dpi=150)

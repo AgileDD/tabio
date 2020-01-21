@@ -1,10 +1,11 @@
-from csv_file import read_csv, mean_char_size, Line, bbox_union
+from csv_file import read_csv, mean_char_size, Line, bbox_union, group_lines_spacially, is_bbox_inside
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
 from PIL import ImageDraw
 import numpy as np
+import pascalvoc
 
 doc_hash = '99e91ba482e98894f5c8da17dde5b259'
 doc_csv_hash = 'baad73b47f22e16520e04b02455c5817'
@@ -15,44 +16,15 @@ base_csv_fname = '../labeled-data/Tarfaya/'+doc_csv_hash+'_'+str(page_number)+'_
 
 
 lines = read_csv(base_csv_fname+'.csv')
-size = mean_char_size(lines)
-y_separation = size[1] * .8
-print(y_separation)
+spacial_lines = group_lines_spacially(lines)
+labeled_boxes = pascalvoc.read(base_fname+'.xml')
 
-# ignore the lines in the csv
-# find lines based on spacial location
-chars = []
-for line in lines:
-    for c, b in zip(line.text, line.bboxes):
-        if b is not None:
-            chars.append((c, b))
-
-chars = sorted(chars, key=lambda x: x[1].top)
-
-spacial_lines = []
-
-line_chars = []
-line_bboxes = []
-line_top = chars[0][1].top
-line_bbox = None
-print(line_top)
-for c, b in chars:
-    if b.top < (line_top + y_separation):
-        line_chars.append(c)
-        line_bboxes.append(b)
-        line_bbox = bbox_union(line_bbox, b)
-    else:
-        print(b.top, line_top)
-        line = Line(''.join(line_chars), line_bboxes, line_bbox)
-        spacial_lines.append(line)
-        line_bboxes = [b]
-        line_chars = [c]
-        line_bbox = b
-        line_top = b.top
-        
-
-line = Line(''.join(line_chars), line_bboxes, line_bbox)
-spacial_lines.append(line)
+def classify_line(line):
+    for bbox in line.bboxes:
+        for l in labeled_boxes:
+            if is_bbox_inside(l.bbox, bbox):
+                return l.name
+    return None
 
 
 im = np.array(Image.open(base_fname+'.jpg'), dtype=np.uint8)
@@ -61,17 +33,12 @@ ax.imshow(im)
 
 for line in spacial_lines:
 
-        line_category = None
+        line_category = classify_line(line)
+        print(line_category)
 
         for char, bbox in zip(line.text, line.bboxes):
             if bbox is None:
                 continue
-
-            #detect line category
-            #if line_category is None:
-            #    found_category = find(lambda x: is_bbox_inside(x.bbox, bbox), labeled_boxes)
-            #    if found_category is not None:
-            #        line_category = found_category.name
 
             #shade over the char in blue
             b = bbox
@@ -95,5 +62,6 @@ for line in spacial_lines:
             linewidth=1,edgecolor='r',facecolor='none')
         ax.add_patch(rect)
 
+pascalvoc.draw(labeled_boxes, ax)
 
 plt.show()
