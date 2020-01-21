@@ -31,8 +31,8 @@ def bbox_union(a, b):
     if b == None:
         return a
     return BBox(
-        min(a.left, b.left), min(a.bottom, b.bottom),
-        max(a.right, b.right), max(a.top, b.top))
+        min(a.left, b.left), max(a.bottom, b.bottom),
+        max(a.right, b.right), min(a.top, b.top))
 
 
 #holds text, a list of bounding boxes for each char, and an overall box for the line
@@ -65,9 +65,9 @@ def read_csv(fname):
             yScale = xScale
             bbox = BBox(
                 (info.x)*xScale,
-                (info.y-info.height)*xScale,
+                (info.y)*yScale,
                 (info.x+info.width)*xScale,
-                (info.y)*yScale)
+                (info.y-info.height)*yScale)
 
         line_bbox = bbox_union(line_bbox, bbox)
         line_chars.append(c)
@@ -97,7 +97,7 @@ def mean_char_size(lines):
         for b in line.bboxes:
             if b is not None:
                 char_widths.append(b.right - b.left)
-                char_heights.append(b.top - b.bottom)
+                char_heights.append(b.bottom - b.top)
 
     return (statistics.mean(char_widths), statistics.mean(char_heights))
 
