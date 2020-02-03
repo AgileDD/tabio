@@ -80,6 +80,9 @@ def read_csv(fname):
 # each Line contains chars that share the same Y (+- epsilon)
 # order of the input chars and lines is ignored
 def group_lines_spacially(lines):
+    if len(lines) == 0:
+        return []
+
     size = mean_char_size(lines)
     y_separation = size[1] * .8
 

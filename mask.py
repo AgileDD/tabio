@@ -43,6 +43,9 @@ def create(lines):
 # split the mask into a mask image per line
 # each line mask will include context above and below the line
 def split(mask, lines):
+    if len(lines) == 0:
+        return []
+
     mean_line_height = statistics.mean(
         map(lambda line: line.bbox.bottom - line.bbox.top, lines))
     width = mask.width
