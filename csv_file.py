@@ -121,9 +121,9 @@ def group_lines_spacially(lines):
             line_bbox = b
             line_top = b.top
 
-
-    line = Line(''.join(line_chars), line_bboxes, line_bbox)
-    spacial_lines.append(line)
+    if line_bbox is not None:
+        line = Line(''.join(line_chars), line_bboxes, line_bbox)
+        spacial_lines.append(line)
     return spacial_lines
 
 
