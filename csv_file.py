@@ -181,6 +181,15 @@ def remove_margin(lines):
 
     return result
 
+def size(lines):
+    x = 0.0
+    y = 0.0
+    for line in lines:
+        for bbox in line.bboxes:
+            x = max(x, bbox.right)
+            y = min(y, bbox.bottom)
+    return (x, y)
+
 def draw(lines, ax):
     for line in lines:
 
