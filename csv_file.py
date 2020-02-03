@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os.path
 sys.path.append('../IQC_Classification')
 
 import textExtract
@@ -12,7 +13,6 @@ import matplotlib.patches as patches
 from PIL import Image
 from PIL import ImageDraw
 import numpy as np
-import sys
 import statistics
 from collections import namedtuple
 
@@ -223,6 +223,15 @@ def draw(lines, ax):
         dy = b.bbox.top - a.bbox.bottom
         ax.arrow(a.bbox.left, a.bbox.bottom, dx, dy, width=3, shape='full', length_includes_head=True)
 
+
+# downloads all pages for a given document hash
+def download(doc_hash, out_dir):
+    csv_contents = sql2box.charDictExtract(None, doc_hash, None)
+    for page,csv in csv_contents.items():
+        print(page)
+        fname = os.path.join(out_dir, doc_hash+'_'+str(page)+'_'+str(page)+'.csv')
+        with open(fname, 'wt') as f:
+            f.write(csv)
 
 if __name__ == '__main__':
     doc_hash = '99e91ba482e98894f5c8da17dde5b259'
