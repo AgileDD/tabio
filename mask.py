@@ -37,21 +37,12 @@ def create(lines):
                 bbox.right,
                 bbox.bottom], fill=0)
 
-    #resize the mask so each pixel represents about 1 character
-    char_width, char_height = csv_file.mean_char_size(lines)
-    x_scale = 1.0 / char_width
-    y_scale = 1.0 / char_height
-    new_width = (int)(mask.width * x_scale)
-    new_height = (int)(mask.height * y_scale)
-
-    mask = mask.resize((new_width, new_height), resample=Image.BICUBIC)
-    #mask = Image.fromarray(np.uint8(decimate(mask, int(char_width) * 255)))
-    return (mask, (x_scale, y_scale))
+    return mask
 
 
 # split the mask into a mask image per line
 # each line mask will include context above and below the line
-def split(mask, scale, lines):
+def split(mask, lines):
     mean_line_height = statistics.mean(
         map(lambda line: line.bbox.bottom - line.bbox.top, lines))
     width = mask.width
@@ -63,9 +54,9 @@ def split(mask, scale, lines):
         bottom = line.bbox.bottom + (mean_line_height * 5.0)
         box = (
             0,
-            max(0, int(top * scale[1])),
+            max(0, int(top)),
             width,
-            min(mask.height, int(bottom * scale[1])))
+            min(mask.height, int(bottom)))
 
         masks.append(mask.crop(box))
 
@@ -75,10 +66,10 @@ def split(mask, scale, lines):
 if __name__ == '__main__':
     fname = sys.argv[1]
     lines = csv_file.read_csv(fname)
-    mask, scale = create(lines)
+    mask = create(lines)
     mask.save('mask.png', 'PNG')
 
-    masks = split(mask, scale, lines)
+    masks = split(mask, lines)
     for i, m in enumerate(masks):
         #print(i)
         m.save('mask-'+str(i)+'.png', 'PNG')
