@@ -13,7 +13,7 @@ def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
 
 paragraph_features = glob('train/Paragraph/*.png')
-sparce_features = glob('train/Sparse/*.png')
+sparce_features = glob('train/TableSparseMulticolumn/*.png')
 
 train_features = np.array(list(map(read_feature, paragraph_features))+list(map(read_feature, sparce_features)))/128.0
 train_targets = np.array([1]*len(paragraph_features) + [0]*len(sparce_features))
@@ -55,4 +55,5 @@ for e in range(epochs):
         running_loss += loss.item()
         print("Training loss: "+str(running_loss/len(train_dataloader)))
 
+torch.save(model, './trained_net.pth')
 
