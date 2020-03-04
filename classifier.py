@@ -6,9 +6,8 @@ import torch.nn.functional as F
 from PIL import Image
 from glob import glob
 import sys
+import model as modl
 
-M = 20
-N = 100
 
 def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
@@ -39,45 +38,22 @@ torch_train_Y = torch.from_numpy(train_targets)
 train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
 train_dataloader = data.DataLoader(train_dataset,batch_size=200,shuffle=True)
 
-def weights_init_normal(m):
-        '''Takes in a module and initializes all linear layers with weight
-           values taken from a normal distribution.'''
-
-        classname = m.__class__.__name__
-        # for every Linear layer in a model
-        if classname.find('Linear') != -1:
-            y = m.in_features
-        # m.weight.data shoud be taken from a normal distribution
-            m.weight.data.normal_(0.0,1/np.sqrt(y))
-        # m.bias.data should be 0
-            m.bias.data.fill_(0)
-
-def init_weights(m):
-        if type(m) == nn.Linear:
-                    torch.nn.init.xavier_uniform(m.weight)
-                    m.bias.data.fill_(0.01)
-
-model = nn.Sequential(nn.Linear(M*N, 128),
-                      nn.BatchNorm1d(128),
-                      nn.Dropout(0.2),
-                      nn.ReLU(),
-                      nn.Linear(128, 64),
-                      nn.BatchNorm1d(64),
-                      nn.Dropout(0.2),
-                      nn.ReLU(),
-                      nn.Linear(64, 17),
-                      nn.LogSoftmax(dim=1))# Define the loss
-model = model.double()
-model.apply(weights_init_normal)
+device = torch.device("cuda")
+model = modl.model
+model = model.to(device)
 criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0003)
-epochs = 200
+epochs = 100
 for e in range(epochs):
     running_loss = 0
     loss_len = 0
     for images, labels in train_dataloader:
-        # Flatten MNIST images into a 784 long vector
-        images = images.view(images.shape[0], -1)
+        images,labels = images.to(device),labels.to(device)
+        if modl.model_type=="MLP":
+            images = images.view(images.shape[0], -1)
+        else:
+            images = images[:,None,:,:]
+
     
         # Training pass
         optimizer.zero_grad()
@@ -93,5 +69,7 @@ for e in range(epochs):
     print("Training loss: "+str(running_loss/loss_len))
     # print("Training loss: "+str(loss.item()))
 
+device= torch.device("cpu")
+model=model.to(device)
 torch.save(model, './trained_net.pth')
 

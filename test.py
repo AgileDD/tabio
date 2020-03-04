@@ -5,6 +5,7 @@ from torch import nn
 import torch.nn.functional as F
 from PIL import Image
 from glob import glob
+import model as modl
 
 def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
@@ -43,7 +44,10 @@ model.eval()
 correct = 0
 total = 0
 for images, labels in test_dataloader:
-    images = images.view(images.shape[0], -1)
+    if modl.model_type=="MLP":
+        images = images.view(images.shape[0], -1)
+    else:
+        images = images[:,None,:,:]
     outputs = model(images)
 
     _, predicted = torch.max(outputs, 1)
