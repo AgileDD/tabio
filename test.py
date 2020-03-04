@@ -49,6 +49,7 @@ for images, labels in test_dataloader:
     else:
         images = images[:,None,:,:]
     outputs = model(images)
+    print(outputs)
 
     _, predicted = torch.max(outputs, 1)
     for i in predicted:
