@@ -13,8 +13,7 @@ def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
 
 
-classes = glob('/home/brian/line_data/train/*')
-classes = [c.split("/")[-1] for c in classes]
+classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', 'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'Title']
 print(classes)
 train_features = []
 train_targets = []
