@@ -1,8 +1,6 @@
 import sys
 import os
 import errno
-from glob import glob
-import os.path
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -12,6 +10,7 @@ import numpy as np
 import pascalvoc
 import mask
 import csv_file
+import data_loader
 
 
 
@@ -119,54 +118,26 @@ def create_features(lines, labeled_boxes):
     return (split_lines, features, split_labels)
 
 
-def find_matching_csv(label_fname):
-    simple_csv_fname = os.path.splitext(label_fname)[0]+'.csv'
-    if os.path.exists(simple_csv_fname):
-        return simple_csv_fname
-
-    # part of the page deosn't match. Label files have two pages numbers but only 1 matters
-    dir_name = os.path.dirname(label_fname)
-    (doc_hash, _, page_number) = os.path.splitext(os.path.basename(label_fname))[0].split('_')
-
-    single_page_fname = os.path.join(dir_name, doc_hash+'_'+str(page_number)+'.csv')
-    if os.path.exists(single_page_fname):
-        return single_page_fname
-
-    double_page_fname = os.path.join(dir_name, doc_hash+'_'+str(page_number)+'_'+str(page_number)+'.csv')
-    if os.path.exists(double_page_fname):
-        return double_page_fname
-
-    return None
-
-
 
 if __name__ == '__main__':
-    in_dir = sys.argv[1]
-    train_dir = sys.argv[2]
-    test_dir = sys.argv[3]
-    test_hashes = set([line.strip() for line in open(sys.argv[4])])
-
-    label_files = glob(f'{in_dir}/*.xml')
-    csv_files = map(find_matching_csv, label_files)
+    train_dir = sys.argv[1]
+    test_dir = sys.argv[2]
 
     mkdir(test_dir)
     mkdir(train_dir)
 
-    for (label_fname, csv_fname) in zip(label_files, csv_files):
-        if csv_fname is None:
-            continue
+    for page in data_loader.all_pages():
 
-        (doc_hash, _, page_number) = os.path.splitext(os.path.basename(csv_fname))[0].split('_')
-        print((doc_hash, page_number, label_fname, csv_fname))
+        print(page)
 
-        lines = csv_file.read_csv(csv_fname)
+        lines = csv_file.read_csv(page.csv_fname)
         lines = csv_file.remove_margin(csv_file.group_lines_spacially(lines))
-        labeled_boxes = pascalvoc.read(label_fname)
+        labeled_boxes = pascalvoc.read(page.label_fname)
 
         (_, features, labels) = create_features(lines, labeled_boxes)
 
-        out_dir = test_dir if doc_hash in test_hashes else train_dir
+        out_dir = test_dir if page.hash in data_loader.test_hashes else train_dir
 
         for i, (feature, label) in enumerate(zip(features, labels)):
             mkdir(f"{out_dir}/{label}")
-            feature.save(f"{out_dir}/{label}/{doc_hash}_{page_number}_{i}.png", 'PNG')
+            feature.save(f"{out_dir}/{label}/{page.hash}_{page.page_number}_{i}.png", 'PNG')

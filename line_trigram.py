@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-from glob import glob
 import os
 import split_lines
 import csv_file
@@ -11,6 +10,7 @@ from nltk.util import flatten
 from nltk.lm import KneserNeyInterpolated
 from statistics import mean
 import dill as pickle
+import data_loader
 
 # creates a list containing line classes
 #
@@ -64,33 +64,16 @@ def load():
 
 
 if __name__ == '__main__':
-    in_dir = sys.argv[1]
-    train_dir = sys.argv[2]
-    test_dir = sys.argv[3]
-    test_hashes = set([line.strip() for line in open(sys.argv[4])])
-
-    label_files = glob(f'{in_dir}/*.xml')
-    csv_files = map(split_lines.find_matching_csv, label_files)
-
     training_text = []
     test_text = []
 
-    for (label_fname, csv_fname) in zip(label_files, csv_files):
-        if csv_fname is None:
-            continue
-
-
-        (doc_hash, _, page_number) = os.path.splitext(os.path.basename(csv_fname))[0].split('_')
-
-
-        #print((doc_hash, page_number, label_fname, csv_fname))
-
-        lines = csv_file.read_csv(csv_fname)
+    for page in data_loader.all_pages():
+        lines = csv_file.read_csv(page.csv_fname)
         lines = csv_file.remove_margin(csv_file.group_lines_spacially(lines))
-        labeled_boxes = pascalvoc.read(label_fname)
+        labeled_boxes = pascalvoc.read(page.label_fname)
 
         page_classes = create_training_text(lines, labeled_boxes)
-        if doc_hash in test_hashes:
+        if page.hash in data_loader.test_hashes:
             test_text.append(page_classes)
         else:
             training_text.append(page_classes)
@@ -100,7 +83,7 @@ if __name__ == '__main__':
     model = KneserNeyInterpolated(n)
     model.fit(train_data, padded_sents)
 
-    with open('line_ngram.pkl', 'wb') as fout:
+    with open('line_ngram1.pkl', 'wb') as fout:
         pickle.dump(model, fout)
 
     print('generated data: '+' '.join(model.generate(20, random_seed=7)))
