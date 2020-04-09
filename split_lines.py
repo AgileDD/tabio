@@ -14,7 +14,8 @@ import mask
 import csv_file
 
 
-def classify_line(line):
+
+def classify_line(line, labeled_boxes):
     for bbox in line.bboxes:
         for l in labeled_boxes:
             if csv_file.is_bbox_inside(l.bbox, bbox):
@@ -75,7 +76,7 @@ def create_features(lines, labeled_boxes):
 
     for line, whole_mask in zip(lines, masks):
 
-            line_category = classify_line(line)
+            line_category = classify_line(line, labeled_boxes)
             if line_category is None:
                 continue
 
@@ -97,7 +98,7 @@ def create_features(lines, labeled_boxes):
                 rmask = whole_mask.crop((mask_cut_point, 0, whole_mask.width, whole_mask.height))
 
                 if l is not None:
-                    l_cat = classify_line(l)
+                    l_cat = classify_line(l, labeled_boxes)
                     if l_cat is not None:
                         l_cat = l_cat.split('-')[1]
                         split_lines.append(l)
@@ -105,7 +106,7 @@ def create_features(lines, labeled_boxes):
                         split_masks.append(lmask)
                         print('Left -'+split_labels[-1])
                 if r is not None:
-                    r_cat = classify_line(r)
+                    r_cat = classify_line(r, labeled_boxes)
                     if r_cat is not None:
                         r_cat = r_cat.split('-')[1]
                         split_lines.append(r)
