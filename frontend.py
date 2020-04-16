@@ -7,6 +7,7 @@ import pascalvoc
 import mask
 import split_lines
 import data_loader
+import column_detection
 from PIL import Image
 
 
@@ -77,19 +78,6 @@ if __name__ == '__main__':
             if e.errno != errno.EEXIST:
                 raise
 
-    def read_line_classification(line, labeled_boxes):
-        for bbox in line.bboxes:
-            for l in labeled_boxes:
-                if csv_file.is_bbox_inside(l.bbox, bbox):
-                    return l.name
-        return None
-
-    def fake_column_detection(line, labeled_boxes):
-        classification = read_line_classification(line, labeled_boxes)
-        if classification is None:
-            return None
-        return classification.split('-')[0]
-
     mkdir(test_dir)
     mkdir(train_dir)
 
@@ -103,8 +91,8 @@ if __name__ == '__main__':
         labeled_boxes = read_labels(page)
         
 
-        (features, lines) = create(page, lambda l: fake_column_detection(l, labeled_boxes))
-        labels = map(lambda l: read_line_classification(l, labeled_boxes), lines)
+        (features, lines) = create(page, lambda l: column_detection.fake_column_detection(l, labeled_boxes))
+        labels = map(lambda l: column_detection.read_line_classification(l, labeled_boxes), lines)
 
         out_dir = test_dir if page.hash in data_loader.test_hashes else train_dir
         for i, (feature, label) in enumerate(zip(features, labels)):
