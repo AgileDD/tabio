@@ -7,7 +7,7 @@ import os.path
 
 Page = namedtuple('Page', ['hash', 'page_number', 'csv_fname', 'label_fname'])
 
-in_dir = '/home/brian/agiledd/labeled-data/IFP Samples/'
+in_dir = '/home/brian/agiledd/labeled-data/SortedIFP/'
 test_hashes = [
     '34f1f8647966c04b95eebe9e3a6d448c',
     '14cb7b61d1254dc0bb67d86ee170ef7b'
@@ -33,7 +33,7 @@ def find_matching_csv(label_fname):
     return None
 
 def all_pages():
-    label_files = glob(f'{in_dir}/*.xml')
+    label_files = glob(f'{in_dir}/*/*.xml')
     csv_files = map(find_matching_csv, label_files)
 
     for (label_fname, csv_fname) in zip(label_files, csv_files):

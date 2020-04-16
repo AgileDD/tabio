@@ -229,7 +229,7 @@ def download(doc_hash, out_dir):
     csv_contents = sql2box.charDictExtract(None, doc_hash, None)
     for page,csv in csv_contents.items():
         print(page)
-        fname = os.path.join(out_dir, doc_hash+'_'+str(page)+'_'+str(page)+'.csv')
+        fname = os.path.join(out_dir, doc_hash, doc_hash+'_'+str(page)+'_'+str(page)+'.csv')
         with open(fname, 'wt') as f:
             f.write(csv)
 
