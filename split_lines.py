@@ -14,14 +14,6 @@ import data_loader
 
 
 
-def classify_line(line, labeled_boxes):
-    for bbox in line.bboxes:
-        for l in labeled_boxes:
-            if csv_file.is_bbox_inside(l.bbox, bbox):
-                return l.name
-    return None
-
-
 # split the line into two parts where the first part contains chars.x < width
 def split_line(line, width):
     left = None
@@ -42,102 +34,53 @@ def split_line(line, width):
 
     return (left, right)
 
+# split  mask in half
+def split_mask(mmask):
+    mask_cut_point = mmask.width / 2
+    lmask = mmask.crop((0, 0, mask_cut_point, mmask.height))
+    rmask = mmask.crop((mask_cut_point, 0, mmask.width, mmask.height))
+    return (lmask, rmask)
 
+# given a list of items, and a list identifiying each item as 'SingleColumn' or 'DoubleColumn'
+# split the items if they are a double column
+#
+# Each item will be split according to the item_splitter function
+#
+# The output order will follow a natural reading order
+def split_and_order(items, columns, item_splitter):
+    output = []
+    current_left = []
+    current_right = []
+    status = 'double'
 
-#im = np.array(Image.open(base_fname+'.jpg'), dtype=np.uint8)
-#fig, ax = plt.subplots(1)
-#ax.imshow(im)
+    for (item, column_type) in zip(items, columns):
+        if column_type == 'SingleColumn':
+            if status == 'double':
+                output += current_left
+                output += current_right
+                current_left = []
+                current_right = []
+                status = 'single'
+            output.append(item)
+        if column_type == 'DoubleColumn':
+            l, r = item_splitter(item)
+            current_left.append(l)
+            current_right.append(r)
 
-#csv_file.draw(split_lines, ax)
+    output += current_left
+    output += current_right
+    return output
 
-#pascalvoc.draw(labeled_boxes, ax)
+# given a list of masks, some of which are double columns
+# split only the double columnd lines, and return
+# a singular list of all the masks
+#
+# this is usefull so all the masks can be treated 
+# individually and as a single column
+def split_masks(masks, columns):
+    return split_and_order(masks, columns, split_mask)
 
-#plt.show()
-
-def mkdir(dir):
-    try:
-        os.makedirs(dir)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-
-
-# creates line features for a given page in a document
-def create_features(lines, labeled_boxes):
-    doc_mask = mask.create(lines)
-    masks = mask.split(doc_mask, lines)
-
+def split_lines(lines, columns):
     (width, _) = csv_file.size(lines)
+    return split_and_order(lines, columns, lambda l: split_line(l, width / 2.0))
 
-    split_lines = []
-    split_labels = []
-    split_masks = []
-
-    for line, whole_mask in zip(lines, masks):
-
-            line_category = classify_line(line, labeled_boxes)
-            if line_category is None:
-                continue
-
-            #print(line_category)
-
-            column_type, label = line_category.split('-')
-
-            if column_type == 'SingleColumn':
-                split_lines.append(line)
-                split_labels.append(label)
-                split_masks.append(whole_mask)
-                print(label)
-            if column_type == 'DoubleColumn':
-                #split line and mask in half
-                l,r = split_line(line, width/2.0)
-
-                mask_cut_point = whole_mask.width / 2
-                lmask = whole_mask.crop((0, 0, mask_cut_point, whole_mask.height))
-                rmask = whole_mask.crop((mask_cut_point, 0, whole_mask.width, whole_mask.height))
-
-                if l is not None:
-                    l_cat = classify_line(l, labeled_boxes)
-                    if l_cat is not None:
-                        l_cat = l_cat.split('-')[1]
-                        split_lines.append(l)
-                        split_labels.append(l_cat)
-                        split_masks.append(lmask)
-                        print('Left -'+split_labels[-1])
-                if r is not None:
-                    r_cat = classify_line(r, labeled_boxes)
-                    if r_cat is not None:
-                        r_cat = r_cat.split('-')[1]
-                        split_lines.append(r)
-                        split_labels.append(r_cat)
-                        split_masks.append(rmask)
-                        print('Right-'+split_labels[-1])
-
-    features = map(lambda m: m.resize((100, 20), resample=Image.BICUBIC), split_masks)
-
-    return (split_lines, features, split_labels)
-
-
-
-if __name__ == '__main__':
-    train_dir = sys.argv[1]
-    test_dir = sys.argv[2]
-
-    mkdir(test_dir)
-    mkdir(train_dir)
-
-    for page in data_loader.all_pages():
-
-        print(page)
-
-        lines = csv_file.read_csv(page.csv_fname)
-        lines = csv_file.remove_margin(csv_file.group_lines_spacially(lines))
-        labeled_boxes = pascalvoc.read(page.label_fname)
-
-        (_, features, labels) = create_features(lines, labeled_boxes)
-
-        out_dir = test_dir if page.hash in data_loader.test_hashes else train_dir
-
-        for i, (feature, label) in enumerate(zip(features, labels)):
-            mkdir(f"{out_dir}/{label}")
-            feature.save(f"{out_dir}/{label}/{page.hash}_{page.page_number}_{i}.png", 'PNG')
