@@ -114,8 +114,9 @@ def group_lines_spacially(lines):
             line_bboxes.append(b)
             line_bbox = bbox_union(line_bbox, b)
         else:
-            line = Line(''.join(line_chars), line_bboxes, line_bbox)
-            spacial_lines.append(line)
+            if line_bbox is not None:
+                line = Line(''.join(line_chars), line_bboxes, line_bbox)
+                spacial_lines.append(line)
             line_bboxes = [b]
             line_chars = [c]
             line_bbox = b
