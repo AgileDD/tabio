@@ -79,10 +79,13 @@ if __name__ == '__main__':
         labeled_boxes = pascalvoc.read(p.label_fname)
         feature_vector, lines = frontend.create(p, lambda l: column_detection.fake_column_detection(l, labeled_boxes))
 
-        
+        def GetClass(classification):
+            if classification is None:
+                return 'unknown'
+            return classification.split('-')[1]
 
         feature_vectors.append(feature_vector)
-        truth = list(map(lambda l: column_detection.read_line_classification(l, labeled_boxes).split('-')[1], lines))
+        truth = list(map(lambda l: GetClass(column_detection.read_line_classification(l, labeled_boxes)), lines))
         ground_truths.append(truth)
         all_lines.append(lines)
 
