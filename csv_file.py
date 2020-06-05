@@ -36,7 +36,7 @@ def bbox_union(a, b):
 
 
 #holds text, a list of bounding boxes for each char, and an overall box for the line
-Line = namedtuple('Line', ['text', 'bboxes', 'bbox'])
+Line = namedtuple('Line', ['text', 'bboxes', 'bbox', 'side'])
 
 #returns a list of Line structures
 # multiple lines may be physically next to eachother on the page
@@ -53,7 +53,7 @@ def read_csv(fname):
 
     for c, i in zip(text[1], text[2]):
         if c == '\n':
-            lines.append(Line(''.join(line_chars), line_bboxes, line_bbox))
+            lines.append(Line(''.join(line_chars), line_bboxes, line_bbox, 'unknown'))
             line_bbox = None
             line_bboxes = []
             line_chars = []
@@ -115,7 +115,7 @@ def group_lines_spacially(lines):
             line_bbox = bbox_union(line_bbox, b)
         else:
             if line_bbox is not None:
-                line = Line(''.join(line_chars), line_bboxes, line_bbox)
+                line = Line(''.join(line_chars), line_bboxes, line_bbox, 'unknown')
                 spacial_lines.append(line)
             line_bboxes = [b]
             line_chars = [c]
@@ -123,7 +123,7 @@ def group_lines_spacially(lines):
             line_top = b.top
 
     if line_bbox is not None:
-        line = Line(''.join(line_chars), line_bboxes, line_bbox)
+        line = Line(''.join(line_chars), line_bboxes, line_bbox, 'unknown')
         spacial_lines.append(line)
     return spacial_lines
 
@@ -181,7 +181,8 @@ def remove_margin(lines):
                 left=line.bbox.left-min_x,
                 top=line.bbox.top-min_y,
                 right=line.bbox.right-min_x,
-                bottom=line.bbox.bottom-min_y)))
+                bottom=line.bbox.bottom-min_y),
+            side='unknown'))
 
     return result
 
@@ -235,8 +236,8 @@ def download(doc_hash, out_dir):
             f.write(csv)
 
 if __name__ == '__main__':
-    doc_hash = '99e91ba482e98894f5c8da17dde5b259'
-    doc_csv_hash = 'baad73b47f22e16520e04b02455c5817'
+    doc_hash = '2ec6960ba691c6dc7880cabeafce2129'
+    doc_csv_hash = '2ec6960ba691c6dc7880cabeafce2129'
     #doc_csv_hash = doc_hash
 
     #csv_contents = sql2box.charDictExtract(None, doc_hash, None)
@@ -246,8 +247,8 @@ if __name__ == '__main__':
     #sys.exit(0)
 
     page_number = int(sys.argv[1])
-    base_fname = '../labeled-data/Tarfaya/'+doc_hash+'_'+str(page_number)+'_'+str(page_number)
-    base_csv_fname = '../labeled-data/Tarfaya/'+doc_csv_hash+'_'+str(page_number)+'_'+str(page_number)
+    base_fname = '../labeled-data/SortedIFP/'+doc_hash+'/'+doc_hash+'_'+str(page_number)+'_'+str(page_number)
+    base_csv_fname = '../labeled-data/SortedIFP/'+doc_hash+'/'+doc_csv_hash+'_'+str(page_number)+'_'+str(page_number)
 
 
 
@@ -268,6 +269,7 @@ if __name__ == '__main__':
     ax.imshow(im)
 
     lines = read_csv(base_csv_fname+'.csv')
+    #lines = group_lines_spacially(lines)
 
     for line in lines:
 

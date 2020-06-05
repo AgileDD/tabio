@@ -2,7 +2,7 @@ import xml.etree.ElementTree as et
 from collections import namedtuple
 import matplotlib.patches as patches
 
-BBox = namedtuple('BoundingBox', ['left', 'bottom', 'right', 'top'])
+BBox = namedtuple('BBox', ['left', 'bottom', 'right', 'top'])
 NamedBox = namedtuple('NamedBox', ['name', 'bbox'])
 
 def read(fname):

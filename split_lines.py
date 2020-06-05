@@ -18,19 +18,20 @@ import data_loader
 def split_line(line, width):
     left = None
     right = None
-    def add(c, bbox, out_line):
+    def add(c, bbox, out_line, side):
         if out_line is None:
-            return csv_file.Line(text=c, bboxes=[bbox], bbox=bbox)
+            return csv_file.Line(text=c, bboxes=[bbox], bbox=bbox, side=side)
         return csv_file.Line(
             text=out_line.text+c,
             bboxes=out_line.bboxes+[bbox],
-            bbox=csv_file.bbox_union(out_line.bbox, bbox))
+            bbox=csv_file.bbox_union(out_line.bbox, bbox),
+            side=side)
 
     for c, bbox in zip(line.text, line.bboxes):
         if bbox.right < width:
-            left = add(c, bbox, left)
+            left = add(c, bbox, left, 'left')
         else:
-            right = add(c, bbox, right)
+            right = add(c, bbox, right, 'right')
 
     return (left, right)
 
