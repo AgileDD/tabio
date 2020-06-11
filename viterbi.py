@@ -64,42 +64,10 @@ def print_dptable(V):
         s += "\n"
     print(s)
 
-if __name__ == '__main__':
-    classes = config.classes
+classes = config.classes
 
-    transition_model = line_trigram.load()
-    emission_model = torch.load('./trained_net.pth')
-    emission_model.eval()
-    
-    pages = list(data_loader.test_pages())
-    feature_vectors = []
-    ground_truths = []
-    all_lines = []
-    for p in pages:
-        print(p.hash, p.page_number)
-        labeled_boxes = pascalvoc.read(p.label_fname)
-        feature_vector, lines = frontend.create(p, lambda l: column_detection.fake_column_detection(l, labeled_boxes))
-
-        def GetClass(classification):
-            if classification is None:
-                return 'unknown'
-            return classification.split('-')[1]
-
-        feature_vectors.append(feature_vector)
-        truth = list(map(lambda l: GetClass(column_detection.read_line_classification(l, labeled_boxes)), lines))
-        ground_truths.append(truth)
-        all_lines.append(lines)
-
-
-
-    print(len(pages))
-    print(len(feature_vectors))
-    print(len(ground_truths))
-    print(len(all_lines))
-
-    
-
-
+# runs viterbi search on a page and returns a list of classes, one per line
+def search_page(transition_model, emission_model, features):
     State = namedtuple('State', ['class_id', 'context_id'])
 
     class_ids = list(range(len(classes)))
@@ -154,87 +122,98 @@ if __name__ == '__main__':
         t = transition_probabilities[prev_id][next_id]
         return t
 
-    total = 0
-    correct = 0
+    emission_scores = []
+    features = list(features)
+
+    best_classes = []
+
+    for feature in features:
+        feature = [np.array(feature, dtype=np.uint8)]
+        feature = torch.from_numpy(np.array(feature)/128.0)
+        if modl.model_type=="MLP":
+            feature = feature.view(feature.shape[0], -1)
+        else:
+            feature = feature[:,None,:,:]
+
+        line_scores = emission_model(feature).detach().numpy()
+        emission_scores.append(line_scores)
+
+    
+    print(len(emission_scores))
+    print(len(features))
+
+
+    def emit_p(state_id, feature_id):
+        state = states[state_id]
+        e = emission_scores[feature_id][0][state.class_id]
+        #print(e)
+        return e
+
+    start_probabilities = []
+    for i in range(len(classes)):
+        start_probabilities.append(lm_weight * transition_model.logscore(classes[i], None))
+
+    start_probabilities += [log_zero] * (len(classes) * len(classes))
+
+    
+    print(len(start_probabilities))
+    print(len(state_ids))
+    feature_ids = list(range(len(features)))
+    prob, path = viterbi(feature_ids, state_ids, start_probabilities, trans_p, emit_p)
+    print(page.hash, page.page_number)
+    hypothesis = list(map(lambda p: classes[states[p].class_id], path))
+    return hypothesis
+
+
+if __name__ == '__main__':
+
+    transition_model = line_trigram.load()
+    emission_model = torch.load('./trained_net.pth')
+    emission_model.eval()
+
     all_hypothesis = []
-    all_best = []
-
-    for page, features, ground_truth in zip(pages, feature_vectors, ground_truths):
-
-        emission_scores = []
-        features = list(features)
-
-        best_classes = []
-
-        for feature in features:
-            feature = [np.array(feature, dtype=np.uint8)]
-            feature = torch.from_numpy(np.array(feature)/128.0)
-            if modl.model_type=="MLP":
-                feature = feature.view(feature.shape[0], -1)
-            else:
-                feature = feature[:,None,:,:]
-
-            line_scores = emission_model(feature).detach().numpy()
-            emission_scores.append(line_scores)
-
-            best = line_scores.argmax()
-            #print(classes[best])
-            best_classes.append(classes[best])
-        
-        print(len(emission_scores))
-        print(len(features))
-
-        all_best.append(best_classes)
-
-
-        def emit_p(state_id, feature_id):
-            state = states[state_id]
-            e = emission_scores[feature_id][0][state.class_id]
-            #print(e)
-            return e
-
-        start_probabilities = []
-        for i in range(len(classes)):
-            start_probabilities.append(lm_weight * transition_model.logscore(classes[i], None))
-
-        start_probabilities += [log_zero] * (len(classes) * len(classes))
-
-        
-        print(len(start_probabilities))
-        print(len(state_ids))
-        feature_ids = list(range(len(features)))
-        prob, path = viterbi(feature_ids, state_ids, start_probabilities, trans_p, emit_p)
+    ground_truths = []
+    all_lines = []
+    for page in data_loader.test_pages():
         print(page.hash, page.page_number)
-        hypothesis = list(map(lambda p: classes[states[p].class_id], path))
+        labeled_boxes = pascalvoc.read(page.label_fname)
+        features, lines = frontend.create(page, lambda l: column_detection.fake_column_detection(l, labeled_boxes))
 
-        #total += len(hypothesis)
-        #correct += sum(map(lambda i: 1 if i[0]==i[1] else 0, zip(ground_truth, hypothesis)))
+        def GetClass(classification):
+            if classification is None:
+                return 'unknown'
+            return classification.split('-')[1]
+
+        hypothesis = search_page(transition_model, emission_model, features)
         all_hypothesis.append(hypothesis)
 
+        truth = list(map(lambda l: GetClass(column_detection.read_line_classification(l, labeled_boxes)), lines))
+        ground_truths.append(truth)
+        all_lines.append(lines)
+
+
+    # print table of results
+    count = len(all_hypothesis)
+    print(f"{'':<2}{'side':<10}{'hypothesis':<24}{'reference':<24}")
+    for i, (h, r, l) in enumerate(zip(sum(all_hypothesis, []), sum(ground_truths, []), sum(all_lines, []))):
+        
+        emphasis = ''
+        #if b != h:
+        #    if h == r:
+        #        emphasis = '*'
+        #    else:
+        #        emphasis = '!'
+
+        print(f'{emphasis:<2}{l.side:<10}{h:<24}{r:<24}')
+
+
+    # calculate and print accuracy
+    total = 0
+    correct = 0
     for r, h in zip(sum(ground_truths, []), sum(all_hypothesis, [])):
         total += 1
         if r == h:
             correct += 1
-
-
-
-    
-
-    count = len(all_hypothesis)
-    print(f"{'':<2}{'side':<10}{'best':<24}{'hypothesis':<24}{'reference':<24}")
-    for i, (h, r, l, b) in enumerate(zip(sum(all_hypothesis, []), sum(ground_truths, []), sum(all_lines, []), sum(all_best, []))):
-        
-        emphasis = ''
-        if b != h:
-            if h == r:
-                emphasis = '*'
-            else:
-                emphasis = '!'
-
-        print(f'{emphasis:<2}{l.side:<10}{b:<24}{h:<24}{r:<24}')
-        if i == int(count / 2):
-            print('---------')
-
     print('')
     print(f'{correct} of {total} correct ({float(correct)/total * 100}%)')
 
