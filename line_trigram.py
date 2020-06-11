@@ -54,7 +54,7 @@ if __name__ == '__main__':
     model = KneserNeyInterpolated(n)
     model.fit(train_data, padded_sents)
 
-    with open('line_ngram1.pkl', 'wb') as fout:
+    with open('line_ngram.pkl', 'wb') as fout:
         pickle.dump(model, fout)
 
     print('generated data: '+' '.join(model.generate(20, random_seed=7)))

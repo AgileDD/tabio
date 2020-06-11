@@ -20,7 +20,7 @@ Download and extract SortedIFP.zip
 
 4) train a line trigram model
 
-`python3 line_ngram.py`
+`python3 line_trigram.py`
 
 
 5) edit classifier.py - change glob line to path of `train/` written by frontend
