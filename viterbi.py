@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
 
 
-    print(f'{correct} of {total} correct ({float(correct)/total * 100}%)')
+    
 
     count = len(all_hypothesis)
     print(f"{'':<2}{'side':<10}{'best':<24}{'hypothesis':<24}{'reference':<24}")
@@ -234,4 +234,7 @@ if __name__ == '__main__':
         print(f'{emphasis:<2}{l.side:<10}{b:<24}{h:<24}{r:<24}')
         if i == int(count / 2):
             print('---------')
+
+    print('')
+    print(f'{correct} of {total} correct ({float(correct)/total * 100}%)')
 
