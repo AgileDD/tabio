@@ -46,6 +46,8 @@ def stage2(lines, masks, column_classifier):
 
     lines = split_lines.split_lines(lines, columns)
 
+    # lines[n] correlates with feature_vectors[n]
+
     #after splitting lines, some parts may be None due to having no characters
     # in one half after splitting. Remove the corresponding feature vector
     # since it represents blank space
@@ -55,6 +57,8 @@ def stage2(lines, masks, column_classifier):
         if l is not None:
             feature_vectors_final.append(f)
             lines_final.append(l)
+
+    #features can be modified - add lexigraphical things here to feature_vectors_final
 
     return (feature_vectors_final, lines_final)
 
