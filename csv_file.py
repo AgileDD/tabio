@@ -2,7 +2,7 @@
 
 import sys
 import os.path
-sys.path.append('../IQC_Classification')
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../IQC_Classification'))
 
 import textExtract
 
