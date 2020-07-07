@@ -161,8 +161,12 @@ def remove_margin(lines):
 
     for line in lines:
         for bbox in line.bboxes:
+            if bbox.left < 0 or bbox.top < 0:
+                continue
+
             min_x = min(min_x, bbox.left)
             min_y = min(min_y, bbox.top)
+    return lines
 
     result = []
     for line in lines:
