@@ -11,11 +11,8 @@ import data_loader
 import frontend
 import column_detection as cd
 import detect_columns
+import config
 
-def read_feature(fname):
-  return np.array(Image.open(fname), dtype=np.uint8)
-
-classes = ["SingleColumn","DoubleColumn","None"]
 all_col_labels = []
 all_col_preds = []
 for page in list(data_loader.test_pages())[:100]:
@@ -30,7 +27,7 @@ for page in list(data_loader.test_pages())[:100]:
 	all_col_labels.extend(col_labs)
 	all_col_preds.extend(col_preds)
 
-all_col_labels = [classes.index(str(x)) for x in all_col_labels]
+all_col_labels = [config.col_classes[x] for x in all_col_labels]
 
 cf = confusion_matrix(all_col_labels,all_col_preds)
 print(cf)
