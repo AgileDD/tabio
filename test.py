@@ -7,11 +7,12 @@ from glob import glob
 import model as modl
 import pickle
 from sklearn.metrics import confusion_matrix
+import config
 
 def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
 
-classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', 'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'Title']
+classes = config.classes
 print(classes)
 test_features = []
 test_targets = []

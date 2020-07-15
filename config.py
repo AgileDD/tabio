@@ -9,5 +9,6 @@ test_hashes = [
 '128a980c236d85c867f81557e34cb7f3',
 '20bceabf938737361888dc718db02c8c'
 ]
+classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', 'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'Title']
 col_classes = {"SingleColumn":0,"DoubleColumn":1,"None":2,"DoublColumn":1,None:2}
 col_class_inference = {0:"SingleColumn",1:"DoubleColumn",2:"SingleColumn"}

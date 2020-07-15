@@ -7,13 +7,14 @@ from PIL import Image
 from glob import glob
 import sys
 import model as modl
+import config
 
 
 def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
 
 
-classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', 'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'Title']
+classes = config.classes
 print(classes)
 train_features = []
 train_targets = []

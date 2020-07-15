@@ -18,6 +18,7 @@ import matplotlib.patches as patches
 from PIL import Image
 from PIL import ImageDraw
 import csv_file
+import config
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
@@ -64,7 +65,7 @@ def print_dptable(V):
     print(s)
 
 if __name__ == '__main__':
-    classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', 'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'Title']
+    classes = config.classes
 
     transition_model = line_trigram.load()
     emission_model = torch.load('./trained_net.pth')
