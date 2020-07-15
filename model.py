@@ -51,16 +51,9 @@ elif model_type=="CNN":
             self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
             self.conv2_bn = nn.BatchNorm2d(64)
     
-            ### self.conv3 = nn.Conv2d(32, 64, kernel_size=3)
-            ### self.conv3_bn = nn.BatchNorm2d(64)
-            ### self.conv4 = nn.Conv2d(64, 64, kernel_size=3)
-            ### self.conv4_bn = nn.BatchNorm2d(64)
-    
             self.conv5 = nn.Conv2d(64, 64, kernel_size=3)
             self.conv5_bn = nn.BatchNorm2d(64)
-    
             self.dropout = nn.Dropout2d()
-    #        self.dense1 = nn.Linear(in_features=7744, out_features=512) # Good for 64x64 tiles
             self.dense1 = nn.Linear(in_features=17664, out_features=512)# Good for scaling 128x128 images
             
             self.dense1_bn = nn.BatchNorm1d(512)
@@ -69,12 +62,9 @@ elif model_type=="CNN":
         def forward(self, x):
             x = F.relu(self.conv1_bn(self.conv1(x)))
             x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
-            # x = F.relu(self.conv3_bn(self.conv3(x)))
-            # x = F.relu(F.max_pool2d(self.conv4_bn(self.conv4(x)), 2))
             x = F.relu(self.conv5_bn(self.conv5(x)))
             x = x.view(-1, self.num_flat_features(x)) #reshape
             x = F.relu(self.dense1_bn(self.dense1(x)))
-    #        x = F.dropout(x, training=self.training)
             x = F.relu(self.dense2(x))
             return F.log_softmax(x)
     

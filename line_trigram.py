@@ -31,7 +31,7 @@ def create_training_text(page):
     return map(lambda l: l.split('-')[1], labels)
 
 def load():
-    with open('line_ngram.pkl', 'rb') as fin:
+    with open('line_ngram1.pkl', 'rb') as fin:
         return pickle.load(fin)
 
 

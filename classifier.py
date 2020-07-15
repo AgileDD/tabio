@@ -18,7 +18,7 @@ print(classes)
 train_features = []
 train_targets = []
 for label,cl in enumerate(classes):
-    features = glob("/home/brian/line_data/train/"+cl+"/*.png")
+    features = glob("/home/amit/experiments/tabio/train/"+cl+"/*.png")
     targets = [label]*len(features)
     train_features = train_features + list(map(read_feature, features))
     train_targets = train_targets + targets
@@ -35,14 +35,14 @@ torch_train_X = torch.from_numpy(train_features)
 torch_train_Y = torch.from_numpy(train_targets)
 
 train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
-train_dataloader = data.DataLoader(train_dataset,batch_size=200,shuffle=True)
+train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True)
 
 device = torch.device("cuda")
 model = modl.model
 model = model.to(device)
 criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0003)
-epochs = 100
+epochs = 30
 for e in range(epochs):
     running_loss = 0
     loss_len = 0

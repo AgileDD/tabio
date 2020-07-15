@@ -3,15 +3,13 @@
 from collections import namedtuple
 from glob import glob
 import os.path
+import config
 
 
 Page = namedtuple('Page', ['hash', 'page_number', 'csv_fname', 'label_fname'])
 
-in_dir = '/home/brian/agiledd/labeled-data/SortedIFP/'
-test_hashes = [
-    '34f1f8647966c04b95eebe9e3a6d448c',
-    '14cb7b61d1254dc0bb67d86ee170ef7b'
-]
+in_dir = config.in_dir
+test_hashes = config.test_hashes
 
 def find_matching_csv(label_fname):
     simple_csv_fname = os.path.splitext(label_fname)[0]+'.csv'
