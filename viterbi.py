@@ -29,8 +29,6 @@ def viterbi(obs, states, start_p, trans_p, emit_p):
     for y in states:
         V[0][y] = start_p[y] + emit_p(y, obs[0])
         path[y] = [y]
-
-    print('done initializing ')
     
     # alternative Python 2.7+ initialization syntax
     # V = [{y:(start_p[y] * emit_p[y][obs[0]]) for y in states}]
@@ -49,9 +47,9 @@ def viterbi(obs, states, start_p, trans_p, emit_p):
  
         # Don't need to remember the old paths
         path = newpath
-        print('.', end='', flush=True)
+        #print('.', end='', flush=True)
         
- 
+    #print('')
     #print_dptable(V)
     (prob, state) = max((V[t][y], y) for y in states)
     return (prob, path[state])
@@ -138,11 +136,6 @@ def search_page(transition_model, emission_model, features):
         line_scores = emission_model(feature).detach().numpy()
         emission_scores.append(line_scores)
 
-    
-    print(len(emission_scores))
-    print(len(features))
-
-
     def emit_p(state_id, feature_id):
         state = states[state_id]
         e = emission_scores[feature_id][0][state.class_id]
@@ -155,12 +148,9 @@ def search_page(transition_model, emission_model, features):
 
     start_probabilities += [log_zero] * (len(classes) * len(classes))
 
-    
-    print(len(start_probabilities))
-    print(len(state_ids))
     feature_ids = list(range(len(features)))
     prob, path = viterbi(feature_ids, state_ids, start_probabilities, trans_p, emit_p)
-    print(page.hash, page.page_number)
+
     hypothesis = list(map(lambda p: classes[states[p].class_id], path))
     return hypothesis
 
