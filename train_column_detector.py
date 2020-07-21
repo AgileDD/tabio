@@ -6,7 +6,6 @@ import numpy as np
 from PIL import Image
 import torch
 from torch.utils import data
-import model_coldetect as modl
 import sys
 from torch import nn
 import torch.nn.functional as F
@@ -44,7 +43,7 @@ train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
 train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True)
 
 device = torch.device("cuda")
-model = modl.model
+model = cd.ColumnModel()
 model = model.to(device)
 criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0003)
@@ -54,10 +53,7 @@ for e in range(epochs):
     loss_len = 0
     for images, labels in train_dataloader:
         images,labels = images.to(device),labels.to(device)
-        if modl.model_type=="MLP":
-            images = images.view(images.shape[0], -1)
-        else:
-            images = images[:,None,:,:]
+        images = images[:,None,:,:]
 
     
         # Training pass
