@@ -56,7 +56,7 @@ class ColumnModel(nn.Module):
         return num_features
 
 
-def detect_columns(masks):
+def eval(masks):
     ms = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), masks)
     ms = list(map(np.array, ms))
     labels = [0]*len(ms)

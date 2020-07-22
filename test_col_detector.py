@@ -19,7 +19,7 @@ for page in list(data_loader.test_pages())[:100]:
 	lines = frontend.read_lines(page)
 	# def npmap(x): np.array(x, dtype=np.uint8)
 	masks = frontend.stage1(lines)
-	col_preds = cd.detect_columns(masks)
+	col_preds = cd.eval(masks)
 	
 	col_labs = [cd.fake_column_detection(l, labeled_boxes) for l in lines]
 	all_col_labels.extend(col_labs)
