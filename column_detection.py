@@ -56,7 +56,13 @@ class ColumnModel(nn.Module):
         return num_features
 
 
-def eval(masks):
+def load():
+    model = torch.load('./col_trained_net.pth')
+    model.eval()
+    return model
+
+
+def eval(model, masks):
     ms = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), masks)
     ms = list(map(np.array, ms))
     labels = [0]*len(ms)
@@ -74,12 +80,7 @@ def eval(masks):
 
     test_dataset = data.TensorDataset(torch_test_X,torch_test_Y)
     test_dataloader = data.DataLoader(test_dataset,batch_size=10,shuffle=False)
-
-
-    model = torch.load('./col_trained_net.pth')
-
-    model.eval()
-
+    
     allhyp = []
 
     for images, labels in test_dataloader:
