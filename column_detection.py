@@ -1,5 +1,5 @@
 import csv_file
-
+import config
 import torch
 import numpy as np
 from torch.utils import data
@@ -61,7 +61,8 @@ def load():
     model.eval()
     return model
 
-
+# given a list of masks (one mask per line on a page) classify each one as single or double column
+# returns a list of classifications
 def eval(model, masks):
     ms = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), masks)
     ms = list(map(np.array, ms))
@@ -69,8 +70,8 @@ def eval(model, masks):
     test_features = np.array(ms)/128.0
     test_targets = np.array(labels)
 
-    print(test_targets.shape)
-    print(test_features.shape)
+    #print(test_targets.shape)
+    #print(test_features.shape)
 
 
     Samples = len(test_targets)
@@ -80,19 +81,19 @@ def eval(model, masks):
 
     test_dataset = data.TensorDataset(torch_test_X,torch_test_Y)
     test_dataloader = data.DataLoader(test_dataset,batch_size=10,shuffle=False)
-    
+
     allhyp = []
 
     for images, labels in test_dataloader:
         images = images[:,None,:,:]
         outputs = model(images)
-        print(outputs)
+        #print(outputs)
 
         _, predicted = torch.max(outputs, 1)
-        for i in predicted:
-            print(i)
-        print('')
+        #for i in predicted:
+        #    print(i)
+        #print('')
         allhyp.extend(list(predicted))
-        print(predicted)
-
-    return allhyp
+        #print(predicted)=
+    
+    return map(lambda h: config.col_class_inference[int(h.numpy())], allhyp)

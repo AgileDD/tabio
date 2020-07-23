@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+# This implements viterbi search to improve the results from the line classifier
+# The output of this search will be a classification of each line on a page
+# Improvements come from the additional knowledge of line orderings from the line_trigram model
+#
+# A table detector can then use the classifications to lines representing tables on the page
+
 import data_loader
 import line_trigram
 import frontend
@@ -161,13 +167,15 @@ if __name__ == '__main__':
     emission_model = torch.load('./trained_net.pth')
     emission_model.eval()
 
+    column_model = column_detection.load()
+
     all_hypothesis = []
     ground_truths = []
     all_lines = []
     for page in data_loader.test_pages():
         print(page.hash, page.page_number)
         labeled_boxes = pascalvoc.read(page.label_fname)
-        features, lines = frontend.create(page, lambda l: column_detection.fake_column_detection(l, labeled_boxes))
+        features, lines = frontend.create(page, lambda ls, ms: column_detection.eval(column_model, ms))
 
         def GetClass(classification):
             if classification is None:

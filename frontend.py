@@ -39,7 +39,7 @@ def stage1(lines):
 # list of features can be treated as though the whole
 # page is single column
 def stage2(lines, masks, column_classifier):
-    columns = list(map(column_classifier, lines))
+    columns = list(column_classifier(lines, masks))
     # columns = eval_col.column_detector(masks)
     feature_vectors = split_lines.split_masks(masks, columns)
     feature_vectors = map(lambda m: m.resize((100, 20), resample=Image.BICUBIC), feature_vectors)

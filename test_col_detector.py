@@ -27,7 +27,7 @@ for page in list(data_loader.test_pages())[:100]:
 	all_col_labels.extend(col_labs)
 	all_col_preds.extend(col_preds)
 
-all_col_labels = [config.col_classes[x] for x in all_col_labels]
+all_col_labels = list(map(lambda l: l if l is not None else 'SingleColumn', all_col_labels))
 
 cf = confusion_matrix(all_col_labels,all_col_preds)
 print(cf)
