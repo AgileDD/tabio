@@ -16,6 +16,7 @@ import numpy as np
 import model as modl
 from PIL import Image
 from collections import namedtuple
+import os.path
 
 import cProfile
 
@@ -164,7 +165,7 @@ def search_page(transition_model, emission_model, features):
 if __name__ == '__main__':
 
     transition_model = line_trigram.load()
-    emission_model = torch.load('./trained_net.pth')
+    emission_model = torch.load(os.path.join(os.path.dirname(__file__), './trained_net.pth'))
     emission_model.eval()
 
     column_model = column_detection.load()

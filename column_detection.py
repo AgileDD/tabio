@@ -6,6 +6,7 @@ from torch.utils import data
 from torch import nn
 import torch.nn.functional as F
 from PIL import Image
+import os.path
 
 
 def read_line_classification(line, labeled_boxes):
@@ -57,7 +58,7 @@ class ColumnModel(nn.Module):
 
 
 def load():
-    model = torch.load('./col_trained_net.pth')
+    model = torch.load(os.path.join(os.path.dirname(__file__), './col_trained_net.pth'))
     model.eval()
     return model
 
@@ -95,5 +96,5 @@ def eval(model, masks):
         #print('')
         allhyp.extend(list(predicted))
         #print(predicted)=
-    
+
     return map(lambda h: config.col_class_inference[int(h.numpy())], allhyp)
