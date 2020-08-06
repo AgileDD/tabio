@@ -50,9 +50,31 @@ def load():
     model.eval()
     return model
 
+#given a list of features each representing 1 line
+# this evaluates teh score of each class for each feature
+def eval(model, features):
+    features = list(map(np.array, features))
+    features = np.array(features)/128.0
+    targets = np.array([0]*len(features))
+
+    torch_test_X = torch.from_numpy(features)
+    torch_test_Y = torch.from_numpy(targets)
+
+    test_dataset = data.TensorDataset(torch_test_X,torch_test_Y)
+    test_dataloader = data.DataLoader(test_dataset,batch_size=10,shuffle=False)
+
+    all_scores = []
+
+    for feature_set, labels in test_dataloader:
+        feature_set = feature_set[:,None,:,:]
+        outputs = model(feature_set)
+        all_scores.extend(list(outputs))
+    return all_scores
+
 
 def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
+
 
 def train():
     classes = config.classes

@@ -13,7 +13,6 @@ import pascalvoc
 import column_detection
 import torch
 import numpy as np
-import model as modl
 from PIL import Image
 from collections import namedtuple
 import os.path
@@ -133,21 +132,12 @@ def search_page(transition_model, emission_model, features):
 
     best_classes = []
 
-    for feature in features:
-        feature = [np.array(feature, dtype=np.uint8)]
-        feature = torch.from_numpy(np.array(feature)/128.0)
-        if modl.model_type=="MLP":
-            feature = feature.view(feature.shape[0], -1)
-        else:
-            feature = feature[:,None,:,:]
-
-        line_scores = emission_model(feature).detach().numpy()
-        emission_scores.append(line_scores)
+    emission_scores = line_classifier.eval(emission_model, features)
+    emission_scores = list(map(lambda s: s.detach().cpu().numpy(), emission_scores))
 
     def emit_p(state_id, feature_id):
         state = states[state_id]
-        e = emission_scores[feature_id][0][state.class_id]
-        #print(e)
+        e = emission_scores[feature_id][state.class_id]
         return e
 
     start_probabilities = []
