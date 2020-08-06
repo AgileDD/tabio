@@ -77,7 +77,7 @@ def train():
     torch_train_Y = torch.from_numpy(train_targets)
 
     train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
-    train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True)
+    train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True, drop_last=True)
 
     device = torch.device("cuda")
     model = LineModel()
