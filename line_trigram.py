@@ -40,7 +40,7 @@ if __name__ == '__main__':
     test_text = []
 
     print('loading...')
-    for page in data_loader.all_pages():
+    for page in data_loader.training_pages():
 
         page_classes = create_training_text(page)
         if page.hash in data_loader.test_hashes:
