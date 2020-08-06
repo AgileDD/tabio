@@ -8,6 +8,7 @@ import model as modl
 import pickle
 from sklearn.metrics import confusion_matrix
 import config
+import line_classifier
 
 def read_feature(fname):
   return np.array(Image.open(fname), dtype=np.uint8)
@@ -39,9 +40,7 @@ test_dataset = data.TensorDataset(torch_test_X,torch_test_Y)
 test_dataloader = data.DataLoader(test_dataset,batch_size=10)
 
 
-model = torch.load('./trained_net.pth')
-
-model.eval()
+model = line_classifier.load()
 
 correct = 0
 total = 0

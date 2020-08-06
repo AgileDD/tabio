@@ -26,6 +26,7 @@ from PIL import Image
 from PIL import ImageDraw
 import csv_file
 import config
+import line_classifier
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
@@ -165,9 +166,7 @@ def search_page(transition_model, emission_model, features):
 if __name__ == '__main__':
 
     transition_model = line_trigram.load()
-    emission_model = torch.load(os.path.join(os.path.dirname(__file__), './trained_net.pth'))
-    emission_model.eval()
-
+    emission_model = line_classifier.load()
     column_model = column_detection.load()
 
     all_hypothesis = []

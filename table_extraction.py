@@ -8,7 +8,7 @@ import data_loader
 import line_trigram
 import column_detection
 import table_detection
-
+import line_classifier
 
 import torch
 import itertools
@@ -19,9 +19,7 @@ import os.path
 
 if __name__ == '__main__':
     transition_model = line_trigram.load()
-    emission_model = torch.load('./trained_net.pth')
-    emission_model.eval()
-
+    emission_model = line_classifier.load()
     column_model = column_detection.load()
 
     all_hypothesis = []

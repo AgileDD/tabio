@@ -12,6 +12,7 @@ import frontend
 import pascalvoc
 import column_detection
 import table_detection
+import line_classifier
 import viterbi
 import csv_file
 import torch
@@ -62,8 +63,7 @@ def eval(transition_model, emission_model, column_model, page):
 
 if __name__ == '__main__':
     transition_model = line_trigram.load()
-    emission_model = torch.load(os.path.join(os.path.dirname(__file__), './trained_net.pth'))
-    emission_model.eval()
+    emission_model = line_classifier.load()
     column_model = column_detection.load()
 
     pdf_path = sys.argv[1]

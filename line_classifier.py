@@ -6,8 +6,49 @@ import torch.nn.functional as F
 from PIL import Image
 from glob import glob
 import sys
-import model as modl
 import config
+import os.path
+
+M = 20
+N = 100
+
+class LineModel(nn.Module):
+    def __init__(self):
+        super(LineModel, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3)
+        self.conv1_bn = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
+        self.conv2_bn = nn.BatchNorm2d(64)
+
+        self.conv5 = nn.Conv2d(64, 64, kernel_size=3)
+        self.conv5_bn = nn.BatchNorm2d(64)
+        self.dropout = nn.Dropout2d()
+        self.dense1 = nn.Linear(in_features=17664, out_features=512)# Good for scaling 128x128 images
+        
+        self.dense1_bn = nn.BatchNorm1d(512)
+        self.dense2 = nn.Linear(512, 17)
+        self.double()
+
+    def forward(self, x):
+        x = F.relu(self.conv1_bn(self.conv1(x)))
+        x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
+        x = F.relu(self.conv5_bn(self.conv5(x)))
+        x = x.view(-1, self.num_flat_features(x)) #reshape
+        x = F.relu(self.dense1_bn(self.dense1(x)))
+        x = F.relu(self.dense2(x))
+        return F.log_softmax(x)
+
+    def num_flat_features(self, x):
+        size = x.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+
+def load():
+    model = torch.load(os.path.join(os.path.dirname(__file__), './trained_net.pth'))
+    model.eval()
+    return model
 
 
 def read_feature(fname):
@@ -39,7 +80,7 @@ def train():
     train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True)
 
     device = torch.device("cuda")
-    model = modl.model
+    model = LineModel()
     model = model.to(device)
     criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate
     optimizer = torch.optim.SGD(model.parameters(), lr=0.0003)
@@ -49,11 +90,7 @@ def train():
         loss_len = 0
         for images, labels in train_dataloader:
             images,labels = images.to(device),labels.to(device)
-            if modl.model_type=="MLP":
-                images = images.view(images.shape[0], -1)
-            else:
-                images = images[:,None,:,:]
-
+            images = images[:,None,:,:]
         
             # Training pass
             optimizer.zero_grad()
@@ -73,3 +110,6 @@ def train():
     model=model.to(device)
     torch.save(model, './trained_net.pth')
 
+
+if __name__ == '__main__':
+    train()
