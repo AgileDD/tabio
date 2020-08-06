@@ -13,19 +13,17 @@ Download and extract SortedIFP.zip
 
 2) edit data_loader.py set `in_dir` path
 
-3) run the frontend and write feature files in train/ and test/
-
-`python3 frontend.py train/ test/`
-
+3) train a column decector
+`python3 train_column_detector.py`
 
 4) train a line trigram model
 
 `python3 line_trigram.py`
 
 
-5) edit classifier.py - change glob line to path of `train/` written by frontend
+5) trail a line classifier
 
-`python3 classifier.py`
+`python3 line_classifier.py`
 
 
 6) evaluate

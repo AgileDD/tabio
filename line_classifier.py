@@ -8,6 +8,9 @@ from glob import glob
 import sys
 import config
 import os.path
+import data_loader
+import frontend
+import column_detection
 
 M = 20
 N = 100
@@ -81,16 +84,36 @@ def train():
     print(classes)
     train_features = []
     train_targets = []
-    for label,cl in enumerate(classes):
-        features = glob("/home/amit/experiments/tabio/train/"+cl+"/*.png")
-        targets = [label]*len(features)
-        train_features = train_features + list(map(read_feature, features))
-        train_targets = train_targets + targets
+    for page in list(data_loader.training_pages()):
+        labeled_boxes = frontend.read_labels(page)
+        column_detector = lambda lines, masks: [column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
+        features, lines = frontend.create(page, column_detector)
+        line_classifications = [column_detection.read_line_classification(line, labeled_boxes) for line in lines]
+
+        usable_features = []
+        usable_label_indexes = []
+        for f,c in zip(features, line_classifications):
+            #filter out lines that have no manual label
+            if c is not None:
+                #get rid of the column classification, and only keep the line class
+                line_class = c.split('-')[1]
+                try:
+                    class_index = classes.index(line_class)
+                    usable_features.append(f)
+                    usable_label_indexes.append(class_index) 
+                except ValueError:
+                    continue
+        
+        usable_features = list(map(np.array, usable_features))
+        train_features.extend(usable_features)
+        train_targets.extend(usable_label_indexes)
+
     train_features = np.array(train_features)/128.0
     train_targets = np.array(train_targets)
 
-    print(train_targets.shape)
     print(train_features.shape)
+    print(train_targets.shape)
+    
 
 
     Samples = len(train_targets)
