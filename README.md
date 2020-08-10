@@ -23,7 +23,7 @@ Download and extract SortedIFP.zip
 
 5) trail a line classifier
 
-`python3 line_classifier.py`
+`python3 line_classifier.py --train`
 
 
 6) evaluate
