@@ -153,6 +153,7 @@ def train():
 
     device= torch.device("cpu")
     model=model.to(device)
+    model.__module__ = 'line_classifier'
     torch.save(model, './trained_net.pth')
 
 
