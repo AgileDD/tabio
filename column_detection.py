@@ -10,6 +10,7 @@ import os.path
 import sys
 import data_loader
 import frontend
+from sklearn.metrics import confusion_matrix
 
 
 def read_line_classification(line, labeled_boxes):
@@ -168,6 +169,31 @@ def train():
     torch.save(model, './col_trained_net.pth')
 
 
+def test():
+    model = load()
+
+    all_col_labels = []
+    all_col_preds = []
+    for page in list(data_loader.test_pages())[:100]:
+        print(page)
+        labeled_boxes = frontend.read_labels(page)
+        lines = frontend.read_lines(page)
+        # def npmap(x): np.array(x, dtype=np.uint8)
+        masks = frontend.stage1(lines)
+        col_preds = eval(model, masks)
+        
+        col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
+        all_col_labels.extend(col_labs)
+        all_col_preds.extend(col_preds)
+
+    all_col_labels = list(map(lambda l: l if l is not None else 'SingleColumn', all_col_labels))
+
+    cf = confusion_matrix(all_col_labels,all_col_preds)
+    print(cf)
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == '--train':
         train()
+    else:
+        test()
