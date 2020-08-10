@@ -14,7 +14,7 @@ Download and extract SortedIFP.zip
 2) edit data_loader.py set `in_dir` path
 
 3) train a column decector
-`python3 train_column_detector.py`
+`python3 train_column_detector.py --train`
 
 4) train a line trigram model
 
