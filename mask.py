@@ -13,7 +13,7 @@ from scipy.signal import decimate
 import numpy as np
 
 
-def create(lines):
+def create(lines, background=None):
     max_x=0
     max_y=0
     for line in lines:
@@ -24,8 +24,11 @@ def create(lines):
             max_y = max(max_y, bbox.bottom)
 
     mask = Image.new("L", (int(max_x), int(max_y)))
+    if background is not None:
+        mask.paste(background)
     mask_draw = ImageDraw.Draw(mask)
-    mask_draw.rectangle([(0,0),mask.size], fill=255)
+    if background is None:
+        mask_draw.rectangle([(0,0),mask.size], fill=255)
 
     for line in lines:
         for bbox in line.bboxes:

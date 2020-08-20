@@ -113,7 +113,8 @@ def train():
         labeled_boxes = frontend.read_labels(page)
         lines = frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
-        masks = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), frontend.stage1(lines))
+        background = Image.open(page.csv_fname.replace('.csv', '.jpg'))
+        masks = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), frontend.stage1(lines, background))
         masks = list(map(np.array, masks))
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
         all_masks.extend(list(masks))
@@ -179,7 +180,8 @@ def test():
         labeled_boxes = frontend.read_labels(page)
         lines = frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
-        masks = frontend.stage1(lines)
+        background = Image.open(page.csv_fname.replace('.csv', '.jpg'))
+        masks = frontend.stage1(lines, background)
         col_preds = eval(model, masks)
         
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]

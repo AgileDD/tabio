@@ -28,8 +28,8 @@ def read_labels(page):
 #
 # feature generation is split up into stages because the output
 # of stage 1 is needed to train a column classifier
-def stage1(lines):
-    doc_mask = mask.create(lines)
+def stage1(lines, background):
+    doc_mask = mask.create(lines, background)
     masks = mask.split(doc_mask, lines)
 
     return masks
@@ -66,7 +66,8 @@ def stage2(lines, masks, column_classifier):
 # create feature vectors for the lines in a page
 def create(page, column_classifier):
     lines = read_lines(page)
-    masks = stage1(lines)
+    background = Image.open(page.csv_fname.replace('.csv', '.jpg'))
+    masks = stage1(lines, background)
 
     #now we have 1 mask per line, detect columns
     return stage2(lines, masks, column_classifier)
@@ -90,13 +91,13 @@ if __name__ == '__main__':
     #       get the info from the labeled boxes
     
 
-    for page in data_loader.all_pages():
+    for page in data_loader.test_pages():
         print(page)
 
         labeled_boxes = read_labels(page)
         
-
-        (features, lines) = create(page, lambda l: column_detection.fake_column_detection(l, labeled_boxes))
+        column_detector = lambda lines, masks: [column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
+        (features, lines) = create(page, column_detector)
         labels = map(lambda l: column_detection.read_line_classification(l, labeled_boxes), lines)
 
         out_dir = test_dir if page.hash in data_loader.test_hashes else train_dir
