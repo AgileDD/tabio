@@ -29,6 +29,10 @@ test_hashes = [
 '072e99c74d60aa6c9fb3fd5992b8c239',
 '8b19c56c096dbb5453e8993329914442',
 ]
-classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', 'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'Title']
+
+
+classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'FrameSpareMulticolumn', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', \
+   'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'TableSuperHeader', 'Title']
+
 col_classes = {"SingleColumn":0,"DoubleColumn":1,"None":2,"DoublColumn":1,None:2}
 col_class_inference = {0:"SingleColumn",1:"DoubleColumn",2:"SingleColumn"}
