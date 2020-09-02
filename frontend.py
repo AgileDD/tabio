@@ -66,7 +66,7 @@ def stage2(lines, masks, column_classifier):
 # create feature vectors for the lines in a page
 def create(page, column_classifier):
     lines = read_lines(page)
-    background = Image.open(page.csv_fname.replace('.csv', '.jpg'))
+    background = Image.open(page.background_fname)
     masks = stage1(lines, background)
 
     #now we have 1 mask per line, detect columns
