@@ -32,7 +32,7 @@ class LineModel(nn.Module):
         self.dense1 = nn.Linear(in_features=17664, out_features=512)# Good for scaling 128x128 images
         
         self.dense1_bn = nn.BatchNorm1d(512)
-        self.dense2 = nn.Linear(512, 17)
+        self.dense2 = nn.Linear(512, len(config.classes))
         self.double()
 
     def forward(self, x):
