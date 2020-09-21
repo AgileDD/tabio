@@ -65,8 +65,11 @@ def split_and_order(items, columns, item_splitter):
             output.append(item)
         if column_type == 'DoubleColumn':
             l, r = item_splitter(item)
-            current_left.append(l)
-            current_right.append(r)
+            if l is not None:
+                current_left.append(l)
+            if r is not None:
+                current_right.append(r)
+            status = 'double'
 
     output += current_left
     output += current_right
