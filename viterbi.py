@@ -26,6 +26,9 @@ from PIL import ImageDraw
 import csv_file
 import config
 import line_classifier
+import split_lines
+import itertools
+import align
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
@@ -153,55 +156,41 @@ def search_page(transition_model, emission_model, features):
     return hypothesis
 
 
+def page_truth(page):
+    labeled_boxes = pascalvoc.read(page.label_fname)
+    lines = frontend.read_lines(page)
+    columns = [column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
+    lines = split_lines.split_lines(lines, columns)
+
+    def GetClass(classification):
+            if classification is None:
+                return 'unknown'
+            return classification.split('-')[1]
+
+    truth = list(map(lambda l: GetClass(column_detection.read_line_classification(l, labeled_boxes)), lines))
+    return (lines, truth)
+
+
 if __name__ == '__main__':
 
     transition_model = line_trigram.load()
     emission_model = line_classifier.load()
     column_model = column_detection.load()
 
-    all_hypothesis = []
-    ground_truths = []
-    all_lines = []
+    print(f"{'status':<10}{'hypothesis':<24}{'reference':<24}")
+
     for page in data_loader.test_pages():
-        print(page.hash, page.page_number)
-        labeled_boxes = pascalvoc.read(page.label_fname)
         features, lines = frontend.create(page, lambda ls, ms: column_detection.eval(column_model, ms))
 
-        def GetClass(classification):
-            if classification is None:
-                return 'unknown'
-            return classification.split('-')[1]
-
         hypothesis = search_page(transition_model, emission_model, features)
-        all_hypothesis.append(hypothesis)
 
-        truth = list(map(lambda l: GetClass(column_detection.read_line_classification(l, labeled_boxes)), lines))
-        ground_truths.append(truth)
-        all_lines.append(lines)
+        reference_lines, truth = page_truth(page)
 
-
-    # print table of results
-    count = len(all_hypothesis)
-    print(f"{'':<2}{'side':<10}{'hypothesis':<24}{'reference':<24}")
-    for i, (h, r, l) in enumerate(zip(sum(all_hypothesis, []), sum(ground_truths, []), sum(all_lines, []))):
+        aligned_ref, aligned_hyp, alignment_status = align.align(truth, hypothesis)
+        for r,h,s in zip(aligned_ref, aligned_hyp, alignment_status):
+            if r is None:
+                r = '-'
+            if h is None:
+                h =  '-'
+            print(f'{s!s:<10}{h!s:<24}{r!s:<24}')
         
-        emphasis = ''
-        #if b != h:
-        #    if h == r:
-        #        emphasis = '*'
-        #    else:
-        #        emphasis = '!'
-
-        print(f'{emphasis:<2}{l.side:<10}{h:<24}{r:<24}')
-
-
-    # calculate and print accuracy
-    total = 0
-    correct = 0
-    for r, h in zip(sum(ground_truths, []), sum(all_hypothesis, [])):
-        total += 1
-        if r == h:
-            correct += 1
-    print('')
-    print(f'{correct} of {total} correct ({float(correct)/total * 100}%)')
-
