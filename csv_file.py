@@ -2,12 +2,7 @@
 
 import sys
 import os.path
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../IQC_Classification'))
-
-import textExtract
-
 from pascalvoc import BBox
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
@@ -15,15 +10,10 @@ from PIL import ImageDraw
 import numpy as np
 import statistics
 from collections import namedtuple
-
+import subprocess
 import pascalvoc
+import math
 
-
-
-#import messages
-#messages.Initialize(1)
-#import tagdocs
-import sql2box
 
 def bbox_union(a, b):
     if a == None:
@@ -42,8 +32,8 @@ Line = namedtuple('Line', ['text', 'bboxes', 'bbox', 'side'])
 # multiple lines may be physically next to eachother on the page
 # each line is separated by a '\n' char in the csv
 def read_csv(fname):
-    obj = textExtract.csvfile2Object(fname)
-    text = textExtract.getText(obj)
+    obj = csvfile2Object(fname)
+    text = getText(obj)
 
     lines = []
 
@@ -230,14 +220,211 @@ def draw(lines, ax):
         ax.arrow(a.bbox.left, a.bbox.bottom, dx, dy, width=3, shape='full', length_includes_head=True)
 
 
-# downloads all pages for a given document hash
-def download(doc_hash, out_dir):
-    csv_contents = sql2box.charDictExtract(None, doc_hash, None)
-    for page,csv in csv_contents.items():
-        print(page)
-        fname = os.path.join(out_dir, doc_hash, doc_hash+'_'+str(page)+'_'+str(page)+'.csv')
-        with open(fname, 'wt') as f:
-            f.write(csv)
+def create_csv_from_pdf(pdf_fname, page_number):
+    '''
+    This function gets the CSV from the pdf file and then converts into list of objects.
+    '''
+    pdfbox_jar = './ExtractText.jar'
+
+    dir_name = os.path.dirname(pdf_fname)
+    base_name, _ = os.path.splitext(os.path.basename(pdf_fname))
+    out_path = os.path.join(dir_name, base_name+'_'+str(page_number)+'.csv')
+
+    result = subprocess.run(
+        [
+            'java',
+            "-jar",
+            "-Xms1024m",
+            "-Xmx8196m",
+            pdfbox_jar,
+            pdf_fname,
+            str(page_number),
+            out_path
+        ],
+        check=True,
+        timeout=120)
+
+    return out_path
+
+
+class CSV2Obj():
+    """CSV2Obj
+    Converts a string read from a CSV format to an object.
+    """
+
+    def __init__(self, single_char):
+            char_attributes = single_char.split(",")
+            if len(char_attributes) == 17 or len(char_attributes) == 18:
+                #ipdb.set_trace()
+                #print("###################################3")
+                #print(char_attributes)
+                if char_attributes[0] == '"':
+                    self.unicode = ','
+                    #print("yo ",char_attributes[0])
+                    #print(char_attributes)
+                    char_attributes.remove(char_attributes[1])
+                else:
+                    #print(char_attributes[0])
+                    self.unicode = char_attributes[0][1:-1]
+                self.characterCode = int((char_attributes[1]))
+                self.x = float(char_attributes[2])
+                #print(char_attributes)
+                self.y = float(char_attributes[3])
+                self.fontSize = float(char_attributes[4])
+                #print(char_attributes[5])
+                self.fontSizeInPt = float(char_attributes[5])
+                if len(char_attributes) == 17:
+                    self.font = char_attributes[6].replace('"', '')
+
+                elif len(char_attributes) == 18:
+                    self.font = char_attributes[6].replace('"', '') + char_attributes[7].replace('"', '')
+                    char_attributes.remove(char_attributes[7])
+                elif len(char_attributes) == 19:
+                    self.font = char_attributes[6].replace('"', '') + char_attributes[7].replace('"', '') + char_attributes[8].replace('"','')
+                    char_attributes.remove(char_attributes[7])
+                    char_attributes.remove(char_attributes[8])
+                self.width = float(char_attributes[7])
+                self.height = float(char_attributes[8])
+                self.widthDirAdj = float(char_attributes[9])
+                self.widthOfSpace = float(char_attributes[10])
+                self.heightDir = float(char_attributes[11])
+                self.xScale = float(char_attributes[12])
+                self.yScale = float(char_attributes[13])
+                self.dir = float(char_attributes[14])
+                self.xDirAdj = float(char_attributes[15])
+                self.yDirAdj = float(char_attributes[16])
+            
+            elif len(char_attributes) == 16 or len(char_attributes) == 15:
+                if char_attributes[0] == '"':
+                    self.unicode = ','
+                    # print(char_attributes)
+                    char_attributes.remove(char_attributes[1])
+                else:
+                    self.unicode = char_attributes[0].replace('"', '')
+                self.characterCode = int((char_attributes[1]))
+                self.x = float(char_attributes[2])
+                #print(char_attributes)
+                self.y = float(char_attributes[3])
+                self.fontSize = float(char_attributes[4])
+                #print(char_attributes[5])
+                self.fontSizeInPt = float(char_attributes[5])
+                if len(char_attributes) == 15:
+                    self.font = char_attributes[6].replace('"', '')
+
+                elif len(char_attributes) == 16:
+                    self.font = char_attributes[6].replace('"', '') + char_attributes[7].replace('"', '')
+                    char_attributes.remove(char_attributes[7])
+
+                self.width = float(char_attributes[7])
+                self.height = float(char_attributes[8])
+                self.widthDirAdj = float(char_attributes[9])
+                self.widthOfSpace = float(char_attributes[10])
+                self.heightDir = float(char_attributes[11])
+                self.xScale = float(char_attributes[12])
+                self.yScale = float(char_attributes[13])
+                self.dir = float(char_attributes[14])
+                self.xDirAdj = float(char_attributes[2])
+                self.yDirAdj =  float(char_attributes[3])
+            else:
+                raise Exception("invalid number of columns in csv '"+str(len(char_attributes))+"'")
+
+
+def csvfile2Object(file_name):
+    '''
+    This function reads a csv file and converts into objects
+    '''
+    lines = []
+    with open(file_name) as f:
+        for line in f:
+            lines.append(line)
+    filetext = open(file_name,"r").read()
+    #reading csv files
+    lines= filetext.split("\n")
+    # spliting csv file into lines
+    a = len(lines)
+    del lines[a-1]
+    list_object = []
+    for strings in lines:
+        #print(strings)
+        myobject = CSV2Obj(strings)
+        list_object.append(myobject)
+        #converting into objects and adding them to the list
+    return list_object
+
+
+def getText(structure):
+    '''
+    this function extracts rawText, FormattedText and mapping of character by taking in structure as in input.
+    '''
+    IndexList = []
+    plainStringList = []
+    FormattedStringList = []
+    if len(structure)==0:
+        return [[" "],[" "],[0]] # Nothing means an empty page or just a space
+    xback = int(round(structure[0].xDirAdj))
+    #getting the x co-ordinate of the first object
+    yback = int(round(structure[0].yDirAdj))
+    #getting the y co-ordinate of the first object
+    width = int(math.floor(structure[0].widthDirAdj))
+    avg_width = 0
+    #getting the width of the first object
+    for i in range(len(structure)):
+          avg_width += structure[i].widthDirAdj
+    index = 0
+    avg_width = avg_width/len(structure)
+    if avg_width == 0:
+        avg_width = 1
+        messages.Log("WARNING: Found average width zero in getText. Length of structure = "+str(len(structure)))
+
+    for character in structure:
+        # processing each object in list of objects
+        plainStringList.append(character.unicode)
+        # ipdb.set_trace()
+
+        xco = int(round(character.xDirAdj))
+        yco = int(round(character.yDirAdj))
+
+        if width == 0:
+            width = 1
+        # setting to width to 1 if it comes to 0 after rounding off in order to avoid errors
+
+        t_test = int(math.ceil(abs(xco-xback)/avg_width))
+        # calculating the spacing between characters
+
+        y_test = abs(yco-yback)
+        # calculating the change of line
+
+        if t_test >= 6 or y_test > 5:
+
+            if y_test > 5:
+                FormattedStringList.append("\n")
+                IndexList.append("None")
+                # if there is change in line , then linefeed is inserted
+                FormattedStringList.append(character.unicode)
+                IndexList.append(int(index))
+                index += 1
+            else:
+                FormattedStringList.append(" ")
+                # if there is some spacing, then space is inserted
+                IndexList.append("None")
+
+                FormattedStringList.append(character.unicode)
+                IndexList.append(int(index))
+                index += 1
+        else:
+
+            # plainStringList.append(character.unicode)
+            FormattedStringList.append(character.unicode)
+            IndexList.append(int(index))
+            index += 1
+        xback = xco
+        yback = yco
+        width = int((character.widthDirAdj))
+    function_output = [plainStringList, FormattedStringList, IndexList]
+    # print(plainStringList)
+    #print(Format)
+    return function_output
+
 
 if __name__ == '__main__':
     doc_hash = '2ec6960ba691c6dc7880cabeafce2129'
@@ -298,4 +485,6 @@ if __name__ == '__main__':
 
     plt.show()
     fig.savefig('fig.jpg', bbox_inches='tight', dpi=150)
+
+
 
