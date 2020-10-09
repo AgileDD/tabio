@@ -61,18 +61,19 @@ def pr_rec(status, hypothesis, reference):
     print(f"Precision = {precision}")
     print(f"Recall    = {recall}")
     print(f"F1-score  = {f1}")
-    return
     tp=0
     fn=0
     fp=0
+    allref = reference
+    allhyp = hypothesis
     for i in range(len(allref)):
-        if "Tab" in allref[i] or 'Frame' in allref[i]:
-            if "Tab" in allhyp[i] or 'Frame' in allhyp[i]:
+        if allref[i]=="Table":
+            if allhyp[i]=="Table":
                 tp = tp + 1.0
             else:
                 fn = fn + 1.0
         else:
-            if "Tab" in allhyp[i] or 'Frame' in allhyp[i]:
+            if allhyp[i]=="Table":
                 fp = fp + 1.0
     p = tp/(tp+fp)
     r = tp/(tp+fn)
