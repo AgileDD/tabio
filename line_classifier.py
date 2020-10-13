@@ -30,9 +30,9 @@ class LineModel(nn.Module):
         self.conv5_bn = nn.BatchNorm2d(64)
         self.dropout = nn.Dropout2d()
         self.dense1 = nn.Linear(in_features=17664, out_features=512)# Good for scaling 128x128 images
-        
+
         self.dense1_bn = nn.BatchNorm1d(512)
-        self.dense2 = nn.Linear(512, len(config.classes))
+        self.dense2 = nn.Linear(512, len(config.mapped_classes))
         self.double()
 
     def forward(self, x):
@@ -43,6 +43,7 @@ class LineModel(nn.Module):
         x = F.relu(self.dense1_bn(self.dense1(x)))
         x = F.relu(self.dense2(x))
         return F.log_softmax(x)
+
 
     def num_flat_features(self, x):
         size = x.size()[1:]  # all dimensions except the batch dimension
@@ -74,16 +75,26 @@ def eval(model, features):
     for feature_set, labels in test_dataloader:
         feature_set = feature_set[:,None,:,:]
         outputs = model(feature_set)
+        # print(outputs)
+        # print(outputs.shape[0])
+        tuner = torch.tensor([config.tune]*outputs.shape[0])
+        outputs = outputs + tuner
         all_scores.extend(list(outputs))
     return all_scores
 
 
 def prepare_data(pages):
     classes = config.classes
-    print(classes)
     train_features = []
     train_targets = []
+    max_pages=10000
+    i_page=0
     for page in pages:
+        if i_page%100==0:
+              print(i_page)
+        i_page = i_page+1
+        if i_page>max_pages: 
+            continue
         labeled_boxes = frontend.read_labels(page)
         column_detector = lambda lines, masks: [column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
         features, lines = frontend.create(page, column_detector)
@@ -96,8 +107,12 @@ def prepare_data(pages):
             if c is not None:
                 #get rid of the column classification, and only keep the line class
                 line_class = c.split('-')[1]
+                if line_class not in config.class_map.keys():
+                    print("Warning: "+line_class+" not in class dicitonary")
+                    continue
                 try:
-                    class_index = classes.index(line_class)
+                    # class_index = classes.index(line_class)
+                    class_index = config.mapped_classes.index(config.class_map[line_class])
                     usable_features.append(f)
                     usable_label_indexes.append(class_index) 
                 except ValueError:
@@ -165,10 +180,12 @@ def test():
     total = 0
     allref = []
     allhyp = []
+    tuner = torch.tensor([config.tune]*10)
     for images, labels in test_dataloader:
         images = images[:,None,:,:]
         outputs = model(images)
         print(outputs)
+        outputs = outputs + tuner
 
         _, predicted = torch.max(outputs, 1)
         for i in predicted:
@@ -184,15 +201,15 @@ def test():
     tp=0
     fn=0
     fp=0
+    mapped_classes = config.mapped_classes
     for i in range(len(allref)):
-        if "Tab" in classes[allref[i]] or "Frame" in classes[allref[i]]:
-            print(classes[allref[i]])
-            if "Tab" in classes[allhyp[i]] or "Frame" in classes[allhyp[i]]:
+        if "Tab" in mapped_classes[allref[i]] or 'Frame' in mapped_classes[allref[i]]:
+            if "Tab" in mapped_classes[allhyp[i]] or 'Frame' in mapped_classes[allhyp[i]]:
                 tp = tp + 1.0
             else:
                 fn = fn + 1.0
         else:
-            if "Tab" in classes[allhyp[i]] or "Frame" in classes[allhyp[i]]:
+            if "Tab" in mapped_classes[allhyp[i]] or 'Frame' in mapped_classes[allhyp[i]]:
                 fp = fp + 1.0
     print("Precision="+str(tp/(tp+fp)))
     print("Recall="+str(tp/(tp+fn)))

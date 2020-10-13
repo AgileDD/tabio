@@ -1,4 +1,4 @@
-in_dir = '/home/amit/experiments/tabio/all_links'
+in_dir = '/home/amit/experiments/tabio/finalset/all_links'
 
 
 test_hashes = [
@@ -31,8 +31,12 @@ test_hashes = [
 ]
 
 
-classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'FrameSpareMulticolumn', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', \
-   'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'TableSuperHeader', 'Title']
+# classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'FrameSpareMulticolumn', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', \
+#    'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'TableSuperHeader', 'Title']
+class_map = {'Author':"Else", 'Equation':"Else", 'FigureCaption':"Else", 'FigureText':"Else", 'FrameSpareMulticolumn':"Table", 'Heading':"Else", 'PageFooter':"Else", 'PageHeader':"Else", 'PageNumber':"Else", 'Paragraph':"Else", 'References':"Else", 'Sparse':"Else", 'Subtitle':"Else", 'TableCaption':"Else", 'TableFooter':"Else", 'TableSparseColumnHeader':"Table", 'TableSparseMulticolumn':"Table", 'TableSuperHeader':"Table", 'Title':"Else",'TableSpareMulticolumn':"Table","FrameSparseMulticolumn":"Table","TableSparseOther":"Table","TableCaptionContd":"Else","TableSparse":"Table","TableSpareColumnHeader":"Table"}
+mapped_classes = ["Table","Else"]
+classes = mapped_classes
 
 col_classes = {"SingleColumn":0,"DoubleColumn":1,"None":2,"DoublColumn":1,None:2}
 col_class_inference = {0:"SingleColumn",1:"DoubleColumn",2:"SingleColumn"}
+tune = [1.0,-1.0]

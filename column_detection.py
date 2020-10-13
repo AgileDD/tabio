@@ -108,7 +108,7 @@ def train():
     classes = config.col_classes
     all_masks = []
     all_col_labels = []
-    for page in list(data_loader.training_pages())[:1000]:
+    for page in list(data_loader.training_pages()):
         print(page)
         labeled_boxes = frontend.read_labels(page)
         lines = frontend.read_lines(page)

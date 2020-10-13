@@ -13,6 +13,7 @@ import dill as pickle
 import data_loader
 import frontend
 import column_detection
+import config
 
 # creates a list containing line classes
 #
@@ -28,7 +29,7 @@ def create_training_text(page):
     lines = filter(lambda l: l is not None, lines)
     labels = map(lambda l: column_detection.read_line_classification(l, labeled_boxes), lines)
     labels = filter(lambda l: l is not None, labels)
-    return map(lambda l: l.split('-')[1], labels)
+    return map(lambda l: config.class_map[l.split('-')[1]], labels)
 
 def load():
     with open(os.path.join(os.path.dirname(__file__), 'line_ngram.pkl'), 'rb') as fin:

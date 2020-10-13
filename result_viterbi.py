@@ -11,10 +11,10 @@ def transform_classes(sequence):
     for i in sequence:
         if i == '-':
             result.append(i)
-        elif 'Tab' in i or 'Frame' in i:
+        elif i=="Table" or 'TableSparseMulticolumn' in i or "TableSparseColumnHeader" in i or "TableSparse" in i or "Frame" in i:
             result.append('Table')
         else:
-            result.append('NotTable')
+            result.append('Else')
     return result
 
 def pr_rec(status, hypothesis, reference):
@@ -64,6 +64,7 @@ def pr_rec(status, hypothesis, reference):
     tp=0
     fn=0
     fp=0
+    tn = 0
     allref = reference
     allhyp = hypothesis
     for i in range(len(allref)):
@@ -75,11 +76,14 @@ def pr_rec(status, hypothesis, reference):
         else:
             if allhyp[i]=="Table":
                 fp = fp + 1.0
+            else:
+                tn = tn + 1.0
     p = tp/(tp+fp)
     r = tp/(tp+fn)
     print("Precision="+str(p))
     print("Recall="+str(r))
     print("F1-Score="+str(2.0*p*r/(p+r)))
+    print("False positive rate="+str(fp/(tn+fp)))
 
 
 def confusionMatrix(allref,allvi):
