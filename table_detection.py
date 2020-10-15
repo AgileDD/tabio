@@ -29,7 +29,7 @@ table_classes = set(['TableSparseColumnHeader', 'TableSparseMulticolumn'])
 # bounding boxes. Each bounding box will represent the area of a table on the page
 def detect_tables(lines, classifications):
     
-    is_table = map(lambda c: c in table_classes, classifications)
+    is_table = map(lambda c: 'Table' in c or 'Frame' in c, classifications)
 
     # find consecutive lines that represent tables, ensuring the table does not
     # cross a boundary where the number of columns change

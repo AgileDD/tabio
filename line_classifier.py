@@ -185,14 +185,14 @@ def test():
     fn=0
     fp=0
     for i in range(len(allref)):
-        if "Tab" in classes[allref[i]]:
+        if "Tab" in classes[allref[i]] or "Frame" in classes[allref[i]]:
             print(classes[allref[i]])
-            if "Tab" in classes[allhyp[i]]:
+            if "Tab" in classes[allhyp[i]] or "Frame" in classes[allhyp[i]]:
                 tp = tp + 1.0
             else:
                 fn = fn + 1.0
         else:
-            if "Tab" in classes[allhyp[i]]:
+            if "Tab" in classes[allhyp[i]] or "Frame" in classes[allhyp[i]]:
                 fp = fp + 1.0
     print("Precision="+str(tp/(tp+fp)))
     print("Recall="+str(tp/(tp+fn)))
