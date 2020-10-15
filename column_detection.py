@@ -175,7 +175,7 @@ def test():
 
     all_col_labels = []
     all_col_preds = []
-    for page in list(data_loader.test_pages())[:100]:
+    for page in data_loader.test_pages():
         print(page)
         labeled_boxes = frontend.read_labels(page)
         lines = frontend.read_lines(page)
