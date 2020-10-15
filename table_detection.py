@@ -19,7 +19,7 @@ import torch
 import os.path
 import itertools
 import functools
-
+import pdf2image
 
 
 table_classes = set(['TableSparseColumnHeader', 'TableSparseMulticolumn'])
@@ -73,11 +73,21 @@ if __name__ == '__main__':
 
     hash = os.path.splitext(pdf_fname)[0]
 
+    background_fname = os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.jpg')
+    if not os.path.exists(background_fname):
+        image = pdf2image.convert_from_bytes(
+            open(pdf_path, 'rb').read(),
+            first_page=page_number,
+            last_page=page_number,
+            dpi=300)
+        image[0].save(background_fname, 'JPEG')
+
     page = data_loader.Page(
         hash,
         page_number,
         os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.csv'),
-        os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.xml'))
+        os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.xml'),
+        background_fname)
 
     table_areas = eval(transition_model, emission_model, column_model, page)
 
