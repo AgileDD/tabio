@@ -29,6 +29,7 @@ import line_classifier
 import split_lines
 import itertools
 import align
+import scipy.signal
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
@@ -152,7 +153,15 @@ def search_page(transition_model, emission_model, features):
     feature_ids = list(range(len(features)))
     prob, path = viterbi(feature_ids, state_ids, start_probabilities, trans_p, emit_p)
 
-    hypothesis = list(map(lambda p: classes[states[p].class_id], path))
+    class_ids = [states[p].class_id for p in path]
+    orig_ids = class_ids
+    class_ids = scipy.signal.medfilt(class_ids, 5)
+    class_ids = [int(i) for i in class_ids]
+
+    #for o,f in zip(orig_ids, class_ids):
+    #    print(o,f)
+
+    hypothesis = list(map(lambda i: classes[i], class_ids))
     return hypothesis
 
 

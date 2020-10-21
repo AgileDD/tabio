@@ -11,6 +11,7 @@ import sys
 import data_loader
 import frontend
 from sklearn.metrics import confusion_matrix
+import scipy.signal
 
 
 def read_line_classification(line, labeled_boxes):
@@ -101,7 +102,10 @@ def eval(model, masks):
         allhyp.extend(list(predicted))
         #print(predicted)=
 
-    return map(lambda h: config.col_class_inference[int(h.numpy())], allhyp)
+    class_ids = [int(h.numpy()) for h in allhyp]
+    class_ids = scipy.signal.medfilt(class_ids, 5)
+
+    return map(lambda h: config.col_class_inference[h], class_ids)
 
 
 def train():
