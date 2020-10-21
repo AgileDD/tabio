@@ -22,9 +22,6 @@ import functools
 import pdf2image
 
 
-table_classes = set(['TableSparseColumnHeader', 'TableSparseMulticolumn'])
-
-
 # given a list of lines and a classification for each line, return a list of
 # bounding boxes. Each bounding box will represent the area of a table on the page
 def detect_tables(lines, classifications):
@@ -85,8 +82,8 @@ if __name__ == '__main__':
     page = data_loader.Page(
         hash,
         page_number,
-        os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.csv'),
-        os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.xml'),
+        csv_file.create_csv_from_pdf(pdf_path, page_number),
+        None,
         background_fname)
 
     table_areas = eval(transition_model, emission_model, column_model, page)
