@@ -224,7 +224,7 @@ def create_csv_from_pdf(pdf_fname, page_number):
     '''
     This function gets the CSV from the pdf file and then converts into list of objects.
     '''
-    pdfbox_jar = './ExtractText.jar'
+    pdfbox_jar = os.path.join(os.path.dirname(__file__), './ExtractText.jar')
 
     dir_name = os.path.dirname(pdf_fname)
     base_name, _ = os.path.splitext(os.path.basename(pdf_fname))
