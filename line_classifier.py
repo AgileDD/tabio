@@ -13,10 +13,18 @@ import frontend
 import column_detection
 from sklearn.metrics import confusion_matrix
 import pickle
+from metrics import roc_curve
 
 
 M = 20
 N = 100
+
+def vcat_with_check(a,b):
+        if len(a)==0:
+                return b
+        else:
+                return np.vstack((a,b))
+
 
 class LineModel(nn.Module):
     def __init__(self):
@@ -32,16 +40,16 @@ class LineModel(nn.Module):
         self.dense1 = nn.Linear(in_features=17664, out_features=512)# Good for scaling 128x128 images
 
         self.dense1_bn = nn.BatchNorm1d(512)
-        self.dense2 = nn.Linear(512, len(config.mapped_classes))
+        self.dense2 = nn.Linear(512+200, len(config.mapped_classes))
         self.double()
 
-    def forward(self, x):
+    def forward(self, x, textf):
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
         x = F.relu(self.conv5_bn(self.conv5(x)))
         x = x.view(-1, self.num_flat_features(x)) #reshape
         x = F.relu(self.dense1_bn(self.dense1(x)))
-        x = F.relu(self.dense2(x))
+        x = F.relu(self.dense2(torch.cat((x,textf),dim=1)))
         return F.log_softmax(x)
 
 
@@ -57,24 +65,33 @@ def load():
     model.eval()
     return model
 
+def vcat_with_check(a,b):
+        if len(a)==0:
+                return b
+        else:
+                return np.vstack((a,b))
+
+
+
 #given a list of features each representing 1 line
 # this evaluates teh score of each class for each feature
-def eval(model, features):
+def eval(model, features, textf):
     features = list(map(np.array, features))
     features = np.array(features)/128.0
     targets = np.array([0]*len(features))
 
     torch_test_X = torch.from_numpy(features)
+    torch_test_T = torch.from_numpy(textf)
     torch_test_Y = torch.from_numpy(targets)
 
-    test_dataset = data.TensorDataset(torch_test_X,torch_test_Y)
+    test_dataset = data.TensorDataset(torch_test_X,torch_test_T,torch_test_Y)
     test_dataloader = data.DataLoader(test_dataset,batch_size=10,shuffle=False)
 
     all_scores = []
 
-    for feature_set, labels in test_dataloader:
+    for feature_set, text_feat, labels in test_dataloader:
         feature_set = feature_set[:,None,:,:]
-        outputs = model(feature_set)
+        outputs = model(feature_set, text_feat)
         # print(outputs)
         # print(outputs.shape[0])
         tuner = torch.tensor([config.tune]*outputs.shape[0])
@@ -84,11 +101,13 @@ def eval(model, features):
 
 
 def prepare_data(pages):
+    [tfidf,ts,tfidfw,tsw] = pickle.load(open("lexical_model.pickle","rb"))
     classes = config.classes
     train_features = []
     train_targets = []
     max_pages=10000
     i_page=0
+    train_textf = []
     for page in pages:
         if i_page%100==0:
               print(i_page)
@@ -102,7 +121,8 @@ def prepare_data(pages):
 
         usable_features = []
         usable_label_indexes = []
-        for f,c in zip(features, line_classifications):
+        usable_text = []
+        for f,c,li in zip(features, line_classifications,lines):
             #filter out lines that have no manual label
             if c is not None:
                 #get rid of the column classification, and only keep the line class
@@ -115,22 +135,32 @@ def prepare_data(pages):
                     class_index = config.mapped_classes.index(config.class_map[line_class])
                     usable_features.append(f)
                     usable_label_indexes.append(class_index) 
+                    usable_text.append(li.text)
                 except ValueError:
                     continue
+        if len(usable_features)==0 or len(usable_text)==0:
+               continue
 
+        text_features = np.hstack((ts.transform(tfidf.transform(usable_text)),tsw.transform(tfidfw.transform(usable_text))))
+        print(text_features.shape)
+        train_textf = vcat_with_check(train_textf,text_features)
+        print(train_textf.shape)
         usable_features = list(map(np.array, usable_features))
         train_features.extend(usable_features)
         train_targets.extend(usable_label_indexes)
 
     train_features = np.array(train_features)/128.0
+    print(train_features.shape)
+    print(train_textf.shape)
     train_targets = np.array(train_targets)
 
     Samples = len(train_targets)
 
     torch_train_X = torch.from_numpy(train_features)
+    torch_train_T = torch.from_numpy(train_textf)
     torch_train_Y = torch.from_numpy(train_targets)
 
-    train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
+    train_dataset = data.TensorDataset(torch_train_X,torch_train_T, torch_train_Y)
     return data.DataLoader(train_dataset,batch_size=10,shuffle=True, drop_last=True)
 
 
@@ -146,14 +176,14 @@ def train():
     for e in range(epochs):
         running_loss = 0
         loss_len = 0
-        for images, labels in train_dataloader:
-            images,labels = images.to(device),labels.to(device)
+        for images, text_feat, labels in train_dataloader:
+            images,textf,labels = images.to(device),text_feat.to(device),labels.to(device)
             images = images[:,None,:,:]
         
             # Training pass
             optimizer.zero_grad()
             
-            output = model(images)
+            output = model(images,textf)
 
             ### print output
             ### print labels
@@ -181,13 +211,15 @@ def test():
     allref = []
     allhyp = []
     tuner = torch.tensor([config.tune]*10)
-    for images, labels in test_dataloader:
+    all_proba = []
+    for images, textf, labels in test_dataloader:
         images = images[:,None,:,:]
-        outputs = model(images)
+        outputs = model(images,textf)
         print(outputs)
         outputs = outputs + tuner
 
         _, predicted = torch.max(outputs, 1)
+        all_proba = vcat_with_check(all_proba,outputs.detach().numpy())
         for i in predicted:
             print(i)
         print('')
@@ -197,7 +229,8 @@ def test():
         allhyp.extend(list(predicted))
         print(labels)
         print(predicted)
-
+    fpr,tpr = roc_curve(allref,all_proba,[0])
+    pickle.dump([fpr,tpr],open("roc.pickle","wb"))
     tp=0
     fn=0
     fp=0

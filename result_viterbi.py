@@ -11,7 +11,8 @@ def transform_classes(sequence):
     for i in sequence:
         if i == '-':
             result.append(i)
-        elif i=="Table" or 'TableSparseMulticolumn' in i or "TableSparseColumnHeader" in i or "TableSparse" in i or "Frame" in i:
+        elif i=="Table" or 'TableSparseMulticolumn' in i or "TableSparseColumnHeader" in i or "TableSparse" in i:
+        # elif i=="Table" or "Frame" in i:
             result.append('Table')
         else:
             result.append('Else')

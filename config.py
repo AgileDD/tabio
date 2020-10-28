@@ -39,4 +39,4 @@ classes = mapped_classes
 
 col_classes = {"SingleColumn":0,"DoubleColumn":1,"None":2,"DoublColumn":1,None:2}
 col_class_inference = {0:"SingleColumn",1:"DoubleColumn",2:"SingleColumn"}
-tune = [1.0,-1.0]
+tune = [0.2,-0.2]
