@@ -4,6 +4,8 @@ from collections import namedtuple
 from glob import glob
 import os.path
 import config
+import pdf2image
+import csv_file
 
 
 Page = namedtuple('Page', ['hash', 'page_number', 'csv_fname', 'label_fname', 'background_fname'])
@@ -63,3 +65,28 @@ def test_pages():
         if page.hash in test_hashes:
             yield page
 
+
+# returns a page data structure given a real pdf and page number
+# - pdf does not have to be in the data directory
+def page_from_pdf(pdf_path, page_number):
+    dirname, pdf_name = os.path.split(pdf_path)
+
+    hash = os.path.splitext(pdf_name)[0]
+
+    background_fname = os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.jpg')
+    if not os.path.exists(background_fname):
+        image = pdf2image.convert_from_bytes(
+            open(pdf_path, 'rb').read(),
+            first_page=page_number,
+            last_page=page_number,
+            dpi=300)
+        image[0].save(background_fname, 'JPEG')
+
+    page = Page(
+        hash,
+        page_number,
+        csv_file.create_csv_from_pdf(pdf_path, page_number),
+        None,
+        background_fname)
+
+    return page

@@ -19,7 +19,7 @@ import torch
 import os.path
 import itertools
 import functools
-import pdf2image
+
 
 
 # given a list of lines and a classification for each line, return a list of
@@ -66,25 +66,7 @@ if __name__ == '__main__':
     pdf_path = sys.argv[1]
     page_number = int(sys.argv[2])
 
-    dirname, pdf_fname = os.path.split(pdf_path)
-
-    hash = os.path.splitext(pdf_fname)[0]
-
-    background_fname = os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.jpg')
-    if not os.path.exists(background_fname):
-        image = pdf2image.convert_from_bytes(
-            open(pdf_path, 'rb').read(),
-            first_page=page_number,
-            last_page=page_number,
-            dpi=300)
-        image[0].save(background_fname, 'JPEG')
-
-    page = data_loader.Page(
-        hash,
-        page_number,
-        csv_file.create_csv_from_pdf(pdf_path, page_number),
-        None,
-        background_fname)
+    page = data_loader.page_from_pdf(pdf_path, page_number)
 
     table_areas = eval(transition_model, emission_model, column_model, page)
 
