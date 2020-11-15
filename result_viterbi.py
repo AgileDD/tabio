@@ -22,46 +22,6 @@ def pr_rec(status, hypothesis, reference):
     reference = transform_classes(reference)
     hypothesis = transform_classes(hypothesis)
 
-    total_reference = 0
-    total_hypothesis = 0
-    correct = 0
-    substitutions = 0
-    deletions = 0
-    insertions = 0
-    
-
-
-    for s, h, r in zip(status, hypothesis, reference):
-        # dont care about inserting non table line
-        # dont care about deleting non table line
-        if s == 'i':# and h == 'Table':
-            insertions += 1
-            total_hypothesis += 1
-        if s == 'd':# and r == 'Table':
-            deletions += 1
-            total_reference += 1
-        if s == 'c':
-            correct += 1
-            total_reference += 1
-            total_hypothesis += 1
-        if s == 's':
-            #substitution status was calculated before we mapped all classes to 'Table' or 'NoneTable'
-            # we need to recheck if it is actually a substitution
-            if r == h:
-                correct += 1
-            else:
-                substitutions += 1
-            total_reference += 1
-            total_hypothesis += 1
-
-    precision = float(correct) / float(correct + substitutions + insertions)
-    recall = float(correct) / float(correct + substitutions + deletions)
-
-    f1 = 2.0 * precision * recall / (precision + recall)
-
-    print(f"Precision = {precision}")
-    print(f"Recall    = {recall}")
-    print(f"F1-score  = {f1}")
     tp=0
     fn=0
     fp=0
