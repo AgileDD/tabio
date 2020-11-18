@@ -69,13 +69,13 @@ def load():
 
 #given a list of features each representing 1 line
 # this evaluates teh score of each class for each feature
-def eval(model, features, textf):
+def eval(model, features, lexical_features):
     features = list(map(np.array, features))
     features = np.array(features)/128.0
     targets = np.array([0]*len(features))
 
     torch_test_X = torch.from_numpy(features)
-    torch_test_T = torch.from_numpy(textf)
+    torch_test_T = torch.from_numpy(lexical_features)
     torch_test_Y = torch.from_numpy(targets)
 
     test_dataset = data.TensorDataset(torch_test_X,torch_test_T,torch_test_Y)
@@ -95,7 +95,7 @@ def eval(model, features, textf):
 
 
 def prepare_data(pages):
-    [tfidf,ts,tfidfw,tsw] = lexical.load()
+    lexical_model = lexical.load()
     classes = config.classes
     train_features = []
     train_targets = []
@@ -115,7 +115,7 @@ def prepare_data(pages):
 
         usable_features = []
         usable_label_indexes = []
-        usable_text = []
+        usable_lines = []
         for f,c,li in zip(features, line_classifications,lines):
             #filter out lines that have no manual label
             if c is not None:
@@ -129,13 +129,13 @@ def prepare_data(pages):
                     class_index = config.mapped_classes.index(config.class_map[line_class])
                     usable_features.append(f)
                     usable_label_indexes.append(class_index) 
-                    usable_text.append(li.text)
+                    usable_lines.append(li)
                 except ValueError:
                     continue
         if len(usable_features)==0 or len(usable_text)==0:
                continue
 
-        text_features = np.hstack((ts.transform(tfidf.transform(usable_text)),tsw.transform(tfidfw.transform(usable_text))))
+        text_features = lexical.create_lexical_features(lexical_model, usable_lines)
         print(text_features.shape)
         train_textf = vcat_with_check(train_textf,text_features)
         print(train_textf.shape)

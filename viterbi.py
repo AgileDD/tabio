@@ -77,7 +77,7 @@ def print_dptable(V):
 classes = config.classes
 
 # runs viterbi search on a page and returns a list of classes, one per line
-def search_page(transition_model, emission_model, features, textf):
+def search_page(transition_model, emission_model, features, lexical_features):
     State = namedtuple('State', ['class_id', 'context_id'])
 
     class_ids = list(range(len(classes)))
@@ -137,7 +137,7 @@ def search_page(transition_model, emission_model, features, textf):
 
     best_classes = []
 
-    emission_scores = line_classifier.eval(emission_model, features, textf)
+    emission_scores = line_classifier.eval(emission_model, features, lexical_features)
     emission_scores = list(map(lambda s: s.detach().cpu().numpy(), emission_scores))
 
     def emit_p(state_id, feature_id):
@@ -186,17 +186,14 @@ if __name__ == '__main__':
     transition_model = line_trigram.load()
     emission_model = line_classifier.load()
     column_model = column_detection.load()
-    [tfidf,ts,tfidfw,tsw] = lexical.load()
+    lexical_model = lexical.load()
 
     print(f"{'status':<10}{'hypothesis':<24}{'reference':<24}")
 
     for page in list(data_loader.test_pages()):
         features, lines = frontend.create(page, lambda ls, ms: column_detection.eval(column_model, ms))
-
-        line_text = [li.text for li in lines]
-        text_feat = np.hstack((ts.transform(tfidf.transform(line_text)),tsw.transform(tfidfw.transform(line_text))))
-
-        hypothesis = search_page(transition_model, emission_model, features, text_feat)
+        lexical_features = lexical.create_lexical_features(lexical_model, lines)
+        hypothesis = search_page(transition_model, emission_model, features, lexical_features)
 
         reference_lines, truth = page_truth(page)
 

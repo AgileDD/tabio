@@ -21,6 +21,12 @@ import numpy as np
 def load():
 	return pickle.load(open(os.path.join(os.path.dirname(__file__), "lexical_model.pickle"),"rb"))
 
+def create_lexical_features(lexical_model, lines):
+	[tfidf,ts,tfidfw,tsw] = lexical_model
+	line_text = [li.text for li in lines]
+	text_feat = np.hstack((ts.transform(tfidf.transform(line_text)),tsw.transform(tfidfw.transform(line_text))))
+	return text_feat
+
 def get_classification(text_list,l_model):
 	[tfidf,ts,reg] = l_model
 	result = reg.predict(ts.transform(tfidf.transform(text_list)))
