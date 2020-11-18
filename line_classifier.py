@@ -14,6 +14,7 @@ import column_detection
 from sklearn.metrics import confusion_matrix
 import pickle
 from metrics import roc_curve
+import lexical
 
 
 M = 20
@@ -94,7 +95,7 @@ def eval(model, features, textf):
 
 
 def prepare_data(pages):
-    [tfidf,ts,tfidfw,tsw] = pickle.load(open("lexical_model.pickle","rb"))
+    [tfidf,ts,tfidfw,tsw] = lexical.load()
     classes = config.classes
     train_features = []
     train_targets = []

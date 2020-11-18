@@ -18,9 +18,8 @@ from line_classifier import prepare_data
 from line_classifier import load as load_vision_model
 import numpy as np
 
-def get_model():
-	l_model = pickle.load(open("lexical_model.pickle","rb"))
-	return l_model
+def load():
+	return pickle.load(open(os.path.join(os.path.dirname(__file__), "lexical_model.pickle"),"rb"))
 
 def get_classification(text_list,l_model):
 	[tfidf,ts,reg] = l_model

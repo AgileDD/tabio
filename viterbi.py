@@ -30,7 +30,7 @@ import split_lines
 import itertools
 import align
 import scipy.signal
-import pickle
+import lexical
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     transition_model = line_trigram.load()
     emission_model = line_classifier.load()
     column_model = column_detection.load()
-    [tfidf,ts,tfidfw,tsw] = pickle.load(open("lexical_model.pickle","rb"))
+    [tfidf,ts,tfidfw,tsw] = lexical.load()
 
     print(f"{'status':<10}{'hypothesis':<24}{'reference':<24}")
 
