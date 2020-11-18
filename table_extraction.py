@@ -9,6 +9,7 @@ import line_trigram
 import column_detection
 import table_detection
 import line_classifier
+import lexical
 from tabula import read_pdf
 import os.path
 
@@ -17,13 +18,14 @@ if __name__ == '__main__':
     transition_model = line_trigram.load()
     emission_model = line_classifier.load()
     column_model = column_detection.load()
+    lexical_model = lexical.load()
 
     pdf_path = sys.argv[1]
     page_number = int(sys.argv[2])
 
     page = data_loader.page_from_pdf(pdf_path, page_number)
 
-    table_areas = table_detection.eval(transition_model, emission_model, column_model, page)
+    table_areas = table_detection.eval(transition_model, emission_model, column_model, lexical_model, page)
 
     for area in table_areas:
         tabula_area = (
