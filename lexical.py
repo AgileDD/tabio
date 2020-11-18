@@ -18,12 +18,6 @@ from line_classifier import prepare_data
 from line_classifier import load as load_vision_model
 import numpy as np
 
-def vcat_with_check(a,b):
-	if len(a)==0:
-		return b
-	else:
-		return np.vstack((a,b))
-
 def get_model():
 	l_model = pickle.load(open("lexical_model.pickle","rb"))
 	return l_model

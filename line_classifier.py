@@ -65,13 +65,6 @@ def load():
     model.eval()
     return model
 
-def vcat_with_check(a,b):
-        if len(a)==0:
-                return b
-        else:
-                return np.vstack((a,b))
-
-
 
 #given a list of features each representing 1 line
 # this evaluates teh score of each class for each feature
