@@ -14,8 +14,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier as RFC
 import pascalvoc
 from sklearn.metrics import classification_report
-from line_classifier import prepare_data
-from line_classifier import load as load_vision_model
 import numpy as np
 
 def load():
