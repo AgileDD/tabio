@@ -10,6 +10,8 @@ Extraction of tables from documents using machine learning and graphs
 
 3) Call `table_detection.py <pdf_path> <page_number>` to detect table areas on a page 
 
+4) Call `table_extraction.py <pdf_path> <page_number>` to extract table data
+
 
 ## Training
 
