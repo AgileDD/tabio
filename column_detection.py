@@ -19,7 +19,7 @@ def read_line_classification(line, labeled_boxes):
         for l in labeled_boxes:
             if csv_file.is_bbox_inside(l.bbox, bbox):
                 return l.name
-    return None
+    return config.unlabeled_class
 
 def fake_column_detection(line, labeled_boxes):
     classification = read_line_classification(line, labeled_boxes)
