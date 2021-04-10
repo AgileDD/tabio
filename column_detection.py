@@ -25,7 +25,7 @@ def fake_column_detection(line, labeled_boxes):
     classification = read_line_classification(line, labeled_boxes)
     if classification is None:
         return None
-    return classification.split('-')[0]
+    return config.interpret_label(classification)[0]
 
 
 class ColumnModel(nn.Module):

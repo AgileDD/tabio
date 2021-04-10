@@ -120,7 +120,7 @@ def prepare_data(pages):
             #filter out lines that have no manual label
             if c is not None:
                 #get rid of the column classification, and only keep the line class
-                line_class = c.split('-')[1]
+                line_class = config.interpret_label(c)[1]
                 if line_class not in config.class_map.keys():
                     print("Warning: "+line_class+" not in class dicitonary")
                     continue

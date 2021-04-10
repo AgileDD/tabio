@@ -47,3 +47,9 @@ classes = mapped_classes
 col_classes = {"SingleColumn":0,"DoubleColumn":1,"None":2,"DoublColumn":1,None:2}
 col_class_inference = {0:"SingleColumn",1:"DoubleColumn",2:"SingleColumn"}
 tune = [0.4,-0.4]
+
+# manually labeled data can be marked with column information as well as a class
+# this function returns (column_class, class)
+def interpret_label(label):
+    column_class, line_class = label.split("-")
+    return (column, line_class)
