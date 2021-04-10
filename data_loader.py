@@ -20,7 +20,7 @@ def find_matching_file(label_fname, extension):
 
     # part of the page deosn't match. Label files have two pages numbers but only 1 matters
     dir_name = os.path.dirname(label_fname)
-    (doc_hash, _, page_number) = os.path.splitext(os.path.basename(label_fname))[0].split('_')
+    (doc_hash, page_number) = os.path.splitext(os.path.basename(label_fname))[0].split('_')
 
     single_page_fname = os.path.join(dir_name, doc_hash+'_'+str(page_number)+extension)
     if os.path.exists(single_page_fname):
@@ -49,7 +49,7 @@ def all_pages():
         if csv_fname is None:
             continue
 
-        (doc_hash, _, page_number) = os.path.splitext(os.path.basename(csv_fname))[0].split('_')
+        (doc_hash, page_number) = os.path.splitext(os.path.basename(csv_fname))[0].split('_')
 
         yield Page(doc_hash, page_number, csv_fname, label_fname, background_fname)
 
@@ -73,7 +73,7 @@ def page_from_pdf(pdf_path, page_number):
 
     hash = os.path.splitext(pdf_name)[0]
 
-    background_fname = os.path.join(dirname, hash+'_'+str(page_number)+'_'+str(page_number)+'.jpg')
+    background_fname = os.path.join(dirname, hash+'_'+str(page_number)+'.jpg')
     if not os.path.exists(background_fname):
         image = pdf2image.convert_from_bytes(
             open(pdf_path, 'rb').read(),
