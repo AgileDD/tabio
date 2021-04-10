@@ -132,7 +132,7 @@ def prepare_data(pages):
                     usable_lines.append(li)
                 except ValueError:
                     continue
-        if len(usable_features)==0 or len(usable_text)==0:
+        if len(usable_features)==0 or len(usable_lines)==0:
                continue
 
         text_features = lexical.create_lexical_features(lexical_model, usable_lines)
