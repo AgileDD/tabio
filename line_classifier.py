@@ -161,7 +161,7 @@ def prepare_data(pages):
 def train():
     train_dataloader = prepare_data(data_loader.training_pages())
     
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = LineModel()
     model = model.to(device)
     criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate

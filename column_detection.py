@@ -140,7 +140,7 @@ def train():
     train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
     train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True)
 
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ColumnModel()
     model = model.to(device)
     criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate
