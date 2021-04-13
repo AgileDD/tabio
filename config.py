@@ -44,6 +44,19 @@ unlabeled_class = None
 mapped_classes = ["Table","Else"]
 classes = mapped_classes
 
+# Normally, we need to detect double column portions of a page
+# so the line classifier can be ran on both the left and right
+# side if there are two columns.
+#
+# If it is known that none of the pages have multiple columns
+# then column detection can be turned off, and all lines will
+# be treated as if they are full width
+#
+# Disabling column detection speeds up processing and prevents
+# misclassifying a single column as double if it is known that 
+# there are no double columns
+enable_column_detection = True
+
 col_classes = {"SingleColumn":0,"DoubleColumn":1,"None":2,"DoublColumn":1,None:2}
 col_class_inference = {0:"SingleColumn",1:"DoubleColumn",2:"SingleColumn"}
 tune = [0.4,-0.4]
@@ -51,5 +64,8 @@ tune = [0.4,-0.4]
 # manually labeled data can be marked with column information as well as a class
 # this function returns (column_class, class)
 def interpret_label(label):
+    if not enable_column_detection:
+        return ('SingleColumn', label)
+    
     column_class, line_class = label.split("-")
     return (column, line_class)

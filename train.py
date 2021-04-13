@@ -1,5 +1,7 @@
+import config
 import column_detection
 import line_classifier
 
-column_detection.train()
+if config.enable_column_detection:
+    column_detection.train()
 line_classifier.train()

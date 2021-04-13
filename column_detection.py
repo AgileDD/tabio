@@ -63,6 +63,9 @@ class ColumnModel(nn.Module):
 
 
 def load():
+    if not config.enable_column_detection:
+        return None
+
     model = torch.load(os.path.join(os.path.dirname(__file__), './col_trained_net.pth'))
     model.eval()
     return model
@@ -70,6 +73,9 @@ def load():
 # given a list of masks (one mask per line on a page) classify each one as single or double column
 # returns a list of classifications
 def eval(model, masks):
+    if not config.enable_column_detection:
+        return ['SingleColumn'] * len(masks)
+    
     ms = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), masks)
     ms = list(map(np.array, ms))
     labels = [0]*len(ms)
