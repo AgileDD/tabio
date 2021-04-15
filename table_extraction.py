@@ -3,7 +3,7 @@
 # this code will detect table locations, then feed that location to tabula
 # to segment the table into a csv
 
-
+import sys
 import data_loader
 import line_trigram
 import column_detection
