@@ -19,13 +19,13 @@ def read_line_classification(line, labeled_boxes):
         for l in labeled_boxes:
             if csv_file.is_bbox_inside(l.bbox, bbox):
                 return l.name
-    return None
+    return config.unlabeled_class
 
 def fake_column_detection(line, labeled_boxes):
     classification = read_line_classification(line, labeled_boxes)
     if classification is None:
         return None
-    return classification.split('-')[0]
+    return config.interpret_label(classification)[0]
 
 
 class ColumnModel(nn.Module):
@@ -63,6 +63,9 @@ class ColumnModel(nn.Module):
 
 
 def load():
+    if not config.enable_column_detection:
+        return None
+
     model = torch.load(os.path.join(os.path.dirname(__file__), './col_trained_net.pth'))
     model.eval()
     return model
@@ -70,6 +73,9 @@ def load():
 # given a list of masks (one mask per line on a page) classify each one as single or double column
 # returns a list of classifications
 def eval(model, masks):
+    if not config.enable_column_detection:
+        return ['SingleColumn'] * len(masks)
+    
     ms = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), masks)
     ms = list(map(np.array, ms))
     labels = [0]*len(ms)
@@ -140,7 +146,7 @@ def train():
     train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
     train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True)
 
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ColumnModel()
     model = model.to(device)
     criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate

@@ -40,7 +40,7 @@ def create_training_text(page):
 	lines = list(filter(lambda l: l is not None, lines))
 	labels = map(lambda l: column_detection.read_line_classification(l, labeled_boxes), lines)
 	labels = list(filter(lambda l: l is not None, labels))
-	labels = list(map(lambda x: x.split("-")[1],labels))
+	labels = list(map(lambda x: config.interpret_label(x)[1],labels))
 	if len(labels)==0 or len(lines)==0:
 		return ([],[])
 	zipped = filter(lambda x: x[1] is not None, zip(lines, labels))

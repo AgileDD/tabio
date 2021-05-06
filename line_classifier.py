@@ -120,7 +120,7 @@ def prepare_data(pages):
             #filter out lines that have no manual label
             if c is not None:
                 #get rid of the column classification, and only keep the line class
-                line_class = c.split('-')[1]
+                line_class = config.interpret_label(c)[1]
                 if line_class not in config.class_map.keys():
                     print("Warning: "+line_class+" not in class dicitonary")
                     continue
@@ -132,7 +132,7 @@ def prepare_data(pages):
                     usable_lines.append(li)
                 except ValueError:
                     continue
-        if len(usable_features)==0 or len(usable_text)==0:
+        if len(usable_features)==0 or len(usable_lines)==0:
                continue
 
         text_features = lexical.create_lexical_features(lexical_model, usable_lines)
@@ -161,7 +161,7 @@ def prepare_data(pages):
 def train():
     train_dataloader = prepare_data(data_loader.training_pages())
     
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = LineModel()
     model = model.to(device)
     criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate

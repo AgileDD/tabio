@@ -104,6 +104,6 @@ if __name__ == '__main__':
         for i, (feature, label) in enumerate(zip(features, labels)):
             if label is None:
                 continue
-            label = label.split('-')[1]
+            label = config.interpret_label(label)[1]
             mkdir(f"{out_dir}/{label}")
             feature.save(f"{out_dir}/{label}/{page.hash}_{page.page_number}_{i}.png", 'PNG')

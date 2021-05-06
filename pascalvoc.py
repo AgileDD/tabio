@@ -17,10 +17,10 @@ def read(fname):
         name = o.find('name').text
 
         bbox = o.find('bndbox')
-        xmin = int(bbox.find('xmin').text)
-        xmax = int(bbox.find('xmax').text)
-        ymin = int(bbox.find('ymin').text)
-        ymax = int(bbox.find('ymax').text)
+        xmin = int(float(bbox.find('xmin').text))
+        xmax = int(float(bbox.find('xmax').text))
+        ymin = int(float(bbox.find('ymin').text))
+        ymax = int(float(bbox.find('ymax').text))
 
         box_names.append(NamedBox(name, bbox=BBox(xmin, ymin, xmax, ymax)))
 

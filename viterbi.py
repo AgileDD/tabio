@@ -175,7 +175,7 @@ def page_truth(page):
     def GetClass(classification):
             if classification is None:
                 return 'unknown'
-            return classification.split('-')[1]
+            return config.interpret_label(classification)[1]
 
     truth = list(map(lambda l: GetClass(column_detection.read_line_classification(l, labeled_boxes)), lines))
     return (lines, truth)
