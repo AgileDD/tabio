@@ -11,14 +11,18 @@ def transform_classes(sequence):
     for i in sequence:
         if i == '-':
             result.append(i)
-        elif i=="Table" or 'TableSparseMulticolumn' in i or "TableSparseColumnHeader" in i or "TableSparse" in i:
+        # elif i=="Table" or 'TableSparseMulticolumn' in i or "TableSparseColumnHeader" in i or "TableSparse" in i:
+        elif "Table" in i:
         # elif i=="Table" or "Frame" in i:
             result.append('Table')
         else:
             result.append('Else')
+        print(i+" "+result[-1])
     return result
 
 def pr_rec(status, hypothesis, reference):
+    print(reference[:100])
+    print(hypothesis[:100])
     reference = transform_classes(reference)
     hypothesis = transform_classes(hypothesis)
 
@@ -80,7 +84,7 @@ if len(sys.argv) > 1:
 
 lines = open(in_fname).readlines()
 lines = [x.strip() for x in lines]
-allwords = [x.split() for x in lines]
+allwords = [[x.split()[0],x.split()[1],"".join(x.split()[2:])] for x in lines]
 allwords = [x for x in allwords if len(x) == 3]
 #print(allwords)
 [status, hypothesis, reference] = zip(*allwords)
