@@ -5,22 +5,26 @@
 # table detection uses viterbi search to classify lines. Adjacent lines that 
 # are classified as a table will be grouped together
 
-import sys
-import data_loader
-import line_trigram
-import frontend
-import pascalvoc
-import column_detection
-import table_detection
-import line_classifier
-import lexical
-import viterbi
-import csv_file
-import torch
-import os.path
-import itertools
 import functools
+import itertools
+import os.path
+import sys
 
+import torch
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
+import column_detection
+import csv_file
+import data_loader
+import frontend
+import lexical
+import line_classifier
+import line_trigram
+import pascalvoc
+import table_detection
+import viterbi
 
 
 # given a list of lines and a classification for each line, return a list of

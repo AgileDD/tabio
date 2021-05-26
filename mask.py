@@ -5,12 +5,18 @@
 #
 # used for creating features when classifying sections of a document
 
-import sys
-import csv_file
-from PIL import Image, ImageDraw
 import statistics
-from scipy.signal import decimate
+import sys
+import os
+
 import numpy as np
+from PIL import Image, ImageDraw
+from scipy.signal import decimate
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
+import csv_file
 
 
 def create(lines, background=None):

@@ -1,17 +1,22 @@
-import csv_file
-import config
-import torch
-import numpy as np
-from torch.utils import data
-from torch import nn
-import torch.nn.functional as F
-from PIL import Image
 import os.path
 import sys
+
+import numpy as np
+import scipy.signal
+import torch
+import torch.nn.functional as F
+from PIL import Image
+from sklearn.metrics import confusion_matrix
+from torch import nn
+from torch.utils import data
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
+import config
+import csv_file
 import data_loader
 import frontend
-from sklearn.metrics import confusion_matrix
-import scipy.signal
 
 
 def read_line_classification(line, labeled_boxes):

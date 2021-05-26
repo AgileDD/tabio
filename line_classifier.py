@@ -1,21 +1,25 @@
-import torch
+import os.path
+import pickle
+import sys
+from glob import glob
+
 import numpy as np
-from torch.utils import data
-from torch import nn
+import torch
 import torch.nn.functional as F
 from PIL import Image
-from glob import glob
-import sys
+from sklearn.metrics import confusion_matrix
+from torch import nn
+from torch.utils import data
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
+import column_detection
 import config
-import os.path
 import data_loader
 import frontend
-import column_detection
-from sklearn.metrics import confusion_matrix
-import pickle
-from metrics import roc_curve
 import lexical
-
+from metrics import roc_curve
 
 M = 20
 N = 100

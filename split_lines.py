@@ -1,17 +1,20 @@
-import sys
-import os
 import errno
+import os
+import sys
+
 import matplotlib
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from PIL import Image
-from PIL import ImageDraw
+import matplotlib.pyplot as plt
 import numpy as np
-import pascalvoc
-import mask
+from PIL import Image, ImageDraw
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
 import csv_file
 import data_loader
-
+import mask
+import pascalvoc
 
 
 # split the line into two parts where the first part contains chars.x < width

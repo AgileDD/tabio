@@ -2,3 +2,7 @@ sorted_masks*/
 train/
 test/
 __pycache__
+*.pth
+*.pickle
+*.pkl
+*.pickel

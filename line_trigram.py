@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
 
-import sys
 import os
-import split_lines
-import csv_file
-import pascalvoc
+import sys
+from statistics import mean
+
+import dill as pickle
+from nltk.lm import KneserNeyInterpolated
 from nltk.lm.preprocessing import padded_everygram_pipeline
 from nltk.util import flatten
-from nltk.lm import KneserNeyInterpolated
-from statistics import mean
-import dill as pickle
-import data_loader
-import frontend
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
 import column_detection
 import config
+import csv_file
+import data_loader
+import frontend
+import pascalvoc
+import split_lines
+
 
 # creates a list containing line classes
 #

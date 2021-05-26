@@ -16,8 +16,12 @@ import numpy as np
 from PIL import Image
 from collections import namedtuple
 import os.path
+import sys
 
 import cProfile
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches

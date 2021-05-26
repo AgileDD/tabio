@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 
-import sys
 import os
-import split_lines
+import random
+import sys
+
 import dill as pickle
-import data_loader
-import frontend
+import numpy as np
+from sklearn.decomposition import TruncatedSVD
+from sklearn.ensemble import RandomForestClassifier as RFC
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import classification_report
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
 import column_detection
 import config
-import random
-from sklearn.decomposition import TruncatedSVD
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestClassifier as RFC
+import data_loader
+import frontend
 import pascalvoc
-from sklearn.metrics import classification_report
-import numpy as np
+import split_lines
+
 
 def load():
 	return pickle.load(open(os.path.join(os.path.dirname(__file__), "lexical_model.pickle"),"rb"))
