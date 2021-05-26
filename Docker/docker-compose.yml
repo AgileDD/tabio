@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  dev:
+    container_name: "Tabio"
+    ports:
+      - '80:80'
+    environment:
+      - LOG_LEVEL=debug
+      - WORKERS_PER_CORE=4
+    volumes:
+      - './app:/app'
+    build:
+      context: ./
+      dockerfile: Dockerfile
