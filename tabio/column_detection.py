@@ -10,27 +10,24 @@ from sklearn.metrics import confusion_matrix
 from torch import nn
 from torch.utils import data
 
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
-
-import config
-import csv_file
-import data_loader
-import frontend
+import tabio.config
+import tabio.csv_file
+import tabio.data_loader
+import tabio.frontend
 
 
 def read_line_classification(line, labeled_boxes):
     for bbox in line.bboxes:
         for l in labeled_boxes:
-            if csv_file.is_bbox_inside(l.bbox, bbox):
+            if tabio.csv_file.is_bbox_inside(l.bbox, bbox):
                 return l.name
-    return config.unlabeled_class
+    return tabio.config.unlabeled_class
 
 def fake_column_detection(line, labeled_boxes):
     classification = read_line_classification(line, labeled_boxes)
     if classification is None:
         return None
-    return config.interpret_label(classification)[0]
+    return tabio.config.interpret_label(classification)[0]
 
 
 class ColumnModel(nn.Module):
@@ -45,7 +42,7 @@ class ColumnModel(nn.Module):
         self.conv5_bn = nn.BatchNorm2d(64)
         self.dropout = nn.Dropout2d()
         self.dense1 = nn.Linear(in_features=36864, out_features=512)# Good for scaling 128x128 images
-        
+
         self.dense1_bn = nn.BatchNorm1d(512)
         self.dense2 = nn.Linear(512, 3)
         self.double()
@@ -68,7 +65,7 @@ class ColumnModel(nn.Module):
 
 
 def load():
-    if not config.enable_column_detection:
+    if not tabio.config.enable_column_detection:
         return None
 
     model = torch.load(os.path.join(os.path.dirname(__file__), './col_trained_net.pth'))
@@ -78,9 +75,9 @@ def load():
 # given a list of masks (one mask per line on a page) classify each one as single or double column
 # returns a list of classifications
 def eval(model, masks):
-    if not config.enable_column_detection:
+    if not tabio.config.enable_column_detection:
         return ['SingleColumn'] * len(masks)
-    
+
     ms = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), masks)
     ms = list(map(np.array, ms))
     labels = [0]*len(ms)
@@ -116,20 +113,20 @@ def eval(model, masks):
     class_ids = [int(h.numpy()) for h in allhyp]
     class_ids = scipy.signal.medfilt(class_ids, 5)
 
-    return map(lambda h: config.col_class_inference[h], class_ids)
+    return map(lambda h: tabio.config.col_class_inference[h], class_ids)
 
 
 def train():
-    classes = config.col_classes
+    classes = tabio.config.col_classes
     all_masks = []
     all_col_labels = []
-    for page in list(data_loader.training_pages()):
+    for page in list(tabio.data_loader.training_pages()):
         print(page)
-        labeled_boxes = frontend.read_labels(page)
-        lines = frontend.read_lines(page)
+        labeled_boxes = tabio.frontend.read_labels(page)
+        lines = tabio.frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
         background = Image.open(page.background_fname)
-        masks = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), frontend.stage1(lines, background))
+        masks = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), tabio.frontend.stage1(lines, background))
         masks = list(map(np.array, masks))
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
         all_masks.extend(list(masks))
@@ -164,10 +161,10 @@ def train():
             images,labels = images.to(device),labels.to(device)
             images = images[:,None,:,:]
 
-        
+
             # Training pass
             optimizer.zero_grad()
-            
+
             output = model(images)
             ### print output
             ### print labels
@@ -190,15 +187,15 @@ def test():
 
     all_col_labels = []
     all_col_preds = []
-    for page in data_loader.test_pages():
+    for page in tabio.data_loader.test_pages():
         print(page)
-        labeled_boxes = frontend.read_labels(page)
-        lines = frontend.read_lines(page)
+        labeled_boxes = tabio.frontend.read_labels(page)
+        lines = tabio.frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
         background = Image.open(page.background_fname)
-        masks = frontend.stage1(lines, background)
+        masks = tabio.frontend.stage1(lines, background)
         col_preds = eval(model, masks)
-        
+
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
         all_col_labels.extend(col_labs)
         all_col_preds.extend(col_preds)

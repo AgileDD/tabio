@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
+import errno
 import os
 import sys
-import errno
-import csv_file
-import pascalvoc
-import mask
-import split_lines
-import data_loader
-import column_detection
+
 from PIL import Image
+
+import tabio.column_detection
+import tabio.csv_file
+import tabio.data_loader
+import tabio.mask
+import tabio.pascalvoc
+import tabio.split_lines
 
 
 def read_lines(page):
-    lines = csv_file.read_csv(page.csv_fname)
-    lines = csv_file.group_lines_spacially(lines)
-    lines = csv_file.remove_margin(lines)
+    lines = tabio.csv_file.read_csv(page.csv_fname)
+    lines = tabio.csv_file.group_lines_spacially(lines)
+    lines = tabio.csv_file.remove_margin(lines)
     return lines
 
 
 def read_labels(page):
-    return pascalvoc.read(page.label_fname)
+    return tabio.pascalvoc.read(page.label_fname)
 
 
 # first stange of feature generation
@@ -29,8 +31,8 @@ def read_labels(page):
 # feature generation is split up into stages because the output
 # of stage 1 is needed to train a column classifier
 def stage1(lines, background):
-    doc_mask = mask.create(lines, background)
-    masks = mask.split(doc_mask, lines)
+    doc_mask = tabio.mask.create(lines, background)
+    masks = tabio.mask.split(doc_mask, lines)
 
     return masks
 
@@ -41,10 +43,10 @@ def stage1(lines, background):
 def stage2(lines, masks, column_classifier):
     columns = list(column_classifier(lines, masks))
     # columns = eval_col.column_detector(masks)
-    feature_vectors = split_lines.split_masks(masks, columns)
+    feature_vectors = tabio.split_lines.split_masks(masks, columns)
     feature_vectors = map(lambda m: m.resize((100, 20), resample=Image.BICUBIC), feature_vectors)
 
-    lines = split_lines.split_lines(lines, columns)
+    lines = tabio.split_lines.split_lines(lines, columns)
 
     # lines[n] correlates with feature_vectors[n]
 
@@ -89,21 +91,21 @@ if __name__ == '__main__':
 
     # todo: implement real column detection, for now
     #       get the info from the labeled boxes
-    
 
-    for page in data_loader.test_pages():
+
+    for page in tabio.data_loader.test_pages():
+        labeled_boxes = read_labels(page)
         print(page)
 
-        labeled_boxes = read_labels(page)
-        
-        column_detector = lambda lines, masks: [column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
-        (features, lines) = create(page, column_detector)
-        labels = map(lambda l: column_detection.read_line_classification(l, labeled_boxes), lines)
 
-        out_dir = test_dir if page.hash in data_loader.test_hashes else train_dir
+        column_detector = lambda lines, masks: [tabio.column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
+        (features, lines) = create(page, column_detector)
+        labels = map(lambda l: tabio.column_detection.read_line_classification(l, labeled_boxes), lines)
+
+        out_dir = test_dir if page.hash in tabio.data_loader.test_hashes else train_dir
         for i, (feature, label) in enumerate(zip(features, labels)):
             if label is None:
                 continue
-            label = config.interpret_label(label)[1]
+            label = tabio.config.interpret_label(label)[1]
             mkdir(f"{out_dir}/{label}")
             feature.save(f"{out_dir}/{label}/{page.hash}_{page.page_number}_{i}.png", 'PNG')

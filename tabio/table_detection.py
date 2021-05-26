@@ -2,7 +2,7 @@
 
 # this code will detect table locations on a page
 #
-# table detection uses viterbi search to classify lines. Adjacent lines that 
+# table detection uses viterbi search to classify lines. Adjacent lines that
 # are classified as a table will be grouped together
 
 import functools
@@ -15,22 +15,22 @@ import torch
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-import column_detection
-import csv_file
-import data_loader
-import frontend
-import lexical
-import line_classifier
-import line_trigram
-import pascalvoc
-import table_detection
-import viterbi
+import tabio.column_detection
+import tabio.csv_file
+import tabio.data_loader
+import tabio.frontend
+import tabio.lexical
+import tabio.line_classifier
+import tabio.line_trigram
+import tabio.pascalvoc
+import tabio.table_detection
+import tabio.viterbi
 
 
 # given a list of lines and a classification for each line, return a list of
 # bounding boxes. Each bounding box will represent the area of a table on the page
 def detect_tables(lines, classifications):
-    
+
     is_table = map(lambda c: 'Table' in c or 'Frame' in c, classifications)
 
     # find consecutive lines that represent tables, ensuring the table does not
@@ -41,7 +41,7 @@ def detect_tables(lines, classifications):
         if key[1]:
             tables.append([i[0].bbox for i in group])
 
-    return map(lambda t: functools.reduce(csv_file.bbox_union, t), tables)
+    return map(lambda t: functools.reduce(tabio.csv_file.bbox_union, t), tables)
 
 def detect_left_columns(lines):
     # find consecutive lines that represent tables, ensuring the table does not
@@ -52,28 +52,28 @@ def detect_left_columns(lines):
         if key == 'left':
             areas.append([i.bbox for i in group])
 
-    return map(lambda t: functools.reduce(csv_file.bbox_union, t), areas)
+    return map(lambda t: functools.reduce(tabio.csv_file.bbox_union, t), areas)
 
 #given all our trained models, and a page, returns a list of rectangles representing areas of tables on the page
 def eval(transition_model, emission_model, column_model, lexical_model, page):
-    features, lines = frontend.create(page, lambda ls, ms: column_detection.eval(column_model, ms))
-    lexical_features = lexical.create_lexical_features(lexical_model, lines)
-    hypothesis = viterbi.search_page(transition_model, emission_model, features, lexical_features)
-    table_areas = table_detection.detect_tables(lines, hypothesis)
+    features, lines = tabio.frontend.create(page, lambda ls, ms: tabio.column_detection.eval(column_model, ms))
+    lexical_features = tabio.lexical.create_lexical_features(lexical_model, lines)
+    hypothesis = tabio.viterbi.search_page(transition_model, emission_model, features, lexical_features)
+    table_areas = tabio.table_detection.detect_tables(lines, hypothesis)
     #table_areas = detect_left_columns(lines)
     return table_areas
 
 
 if __name__ == '__main__':
-    transition_model = line_trigram.load()
-    emission_model = line_classifier.load()
-    column_model = column_detection.load()
-    lexical_model = lexical.load()
+    transition_model = tabio.line_trigram.load()
+    emission_model = tabio.line_classifier.load()
+    column_model = tabio.column_detection.load()
+    lexical_model = tabio.lexical.load()
 
     pdf_path = sys.argv[1]
     page_number = int(sys.argv[2])
 
-    page = data_loader.page_from_pdf(pdf_path, page_number)
+    page = tabio.data_loader.page_from_pdf(pdf_path, page_number)
 
     table_areas = eval(transition_model, emission_model, column_model, lexical_model, page)
 

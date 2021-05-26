@@ -1,5 +1,8 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
+
 ENV DEBIAN_FRONTEND noninteractive
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 # Env Setup
 RUN apt-get update && \
@@ -8,10 +11,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Tabio
-COPY ./app /app
+WORKDIR /app
+COPY . .
 
 RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r /app/tabio/requirements.txt && \
+    python3 -m pip install -r /app/requirements.txt && \
     python3 -m pip install python-multipart ujson
 
 ENTRYPOINT [ "/start-reload.sh" ]

@@ -11,15 +11,12 @@ from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import classification_report
 
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
-
-import column_detection
-import config
-import data_loader
-import frontend
-import pascalvoc
-import split_lines
+import tabio.column_detection
+import tabio.config
+import tabio.data_loader
+import tabio.frontend
+import tabio.pascalvoc
+import tabio.split_lines
 
 
 def load():
@@ -37,16 +34,16 @@ def get_classification(text_list,l_model):
 	return result
 
 def create_training_text(page):
-	labeled_boxes = pascalvoc.read(page.label_fname)
-	
-	lines = frontend.read_lines(page)
-	columns = map(lambda l: column_detection.fake_column_detection(l, labeled_boxes), lines)
-	lines = split_lines.split_lines(lines, columns)
-	
+	labeled_boxes = tabio.pascalvoc.read(page.label_fname)
+
+	lines = tabio.frontend.read_lines(page)
+	columns = map(lambda l: tabio.column_detection.fake_column_detection(l, labeled_boxes), lines)
+	lines = tabio.split_lines.split_lines(lines, columns)
+
 	lines = list(filter(lambda l: l is not None, lines))
-	labels = map(lambda l: column_detection.read_line_classification(l, labeled_boxes), lines)
+	labels = map(lambda l: tabio.column_detection.read_line_classification(l, labeled_boxes), lines)
 	labels = list(filter(lambda l: l is not None, labels))
-	labels = list(map(lambda x: config.interpret_label(x)[1],labels))
+	labels = list(map(lambda x: tabio.config.interpret_label(x)[1],labels))
 	if len(labels)==0 or len(lines)==0:
 		return ([],[])
 	zipped = filter(lambda x: x[1] is not None, zip(lines, labels))
@@ -54,23 +51,23 @@ def create_training_text(page):
 	return (list(lines),list(labels))
 
 if __name__ == '__main__':
-	
+
 	print('loading...')
 	lines = []
 	labels = []
-	for page in list(data_loader.training_pages()):
+	for page in list(tabio.data_loader.training_pages()):
 		print(page)
 		li,la = create_training_text(page)
 		lines.extend(li)
 		labels.extend(la)
-	indices = [i for i in list(range(len(labels))) if labels[i] in config.class_map.keys()]
+	indices = [i for i in list(range(len(labels))) if labels[i] in tabio.config.class_map.keys()]
 	lines = [lines[i][0] for i in indices]
 	labels = [labels[i] for i in indices]
 	lines_train = lines[:int(0.9*len(indices))]
 	labels_train = labels[:int(0.9*len(indices))]
 	lines_test = lines[int(0.9*len(indices)):]
 	labels_test = labels[int(0.9*len(indices)):]
-	
+
 	tfidf = TfidfVectorizer(analyzer="char", ngram_range=(1, 2), strip_accents="unicode", decode_error="ignore")
 	X = tfidf.fit_transform(lines_train)
 	ts = TruncatedSVD(n_components=100)
@@ -89,4 +86,3 @@ if __name__ == '__main__':
 	Y_test = cfr.predict(X_test)
 	print(classification_report(labels_test,Y_test))
 	pickle.dump([tfidf,ts,tfidfw,tsw],open("lexical_model.pickle","wb"))
-

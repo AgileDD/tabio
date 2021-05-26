@@ -11,15 +11,12 @@ from sklearn.metrics import confusion_matrix
 from torch import nn
 from torch.utils import data
 
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
-
-import column_detection
-import config
-import data_loader
-import frontend
-import lexical
-from metrics import roc_curve
+import tabio.column_detection
+import tabio.config
+import tabio.data_loader
+import tabio.frontend
+import tabio.lexical
+import tabio.metrics
 
 M = 20
 N = 100
@@ -45,7 +42,7 @@ class LineModel(nn.Module):
         self.dense1 = nn.Linear(in_features=1408, out_features=512)# Good for scaling 128x128 images
 
         self.dense1_bn = nn.BatchNorm1d(512)
-        self.dense2 = nn.Linear(512+200, len(config.mapped_classes))
+        self.dense2 = nn.Linear(512+200, len(tabio.config.mapped_classes))
         # self.dense2 = nn.Linear(512, len(config.mapped_classes))
         self.double()
 
@@ -95,15 +92,15 @@ def eval(model, features, lexical_features):
         outputs = model(feature_set, text_feat)
         # print(outputs)
         # print(outputs.shape[0])
-        tuner = torch.tensor([config.tune]*outputs.shape[0])
+        tuner = torch.tensor([tabio.config.tune]*outputs.shape[0])
         outputs = outputs + tuner
         all_scores.extend(list(outputs))
     return all_scores
 
 
 def prepare_data(pages):
-    lexical_model = lexical.load()
-    classes = config.classes
+    lexical_model = tabio.lexical.load()
+    classes = tabio.config.classes
     train_features = []
     train_targets = []
     max_pages=10000
@@ -113,12 +110,12 @@ def prepare_data(pages):
         if i_page%100==0:
               print(i_page)
         i_page = i_page+1
-        if i_page>max_pages: 
+        if i_page>max_pages:
             continue
-        labeled_boxes = frontend.read_labels(page)
-        column_detector = lambda lines, masks: [column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
-        features, lines = frontend.create(page, column_detector)
-        line_classifications = [column_detection.read_line_classification(line, labeled_boxes) for line in lines]
+        labeled_boxes = tabio.frontend.read_labels(page)
+        column_detector = lambda lines, masks: [tabio.column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
+        features, lines = tabio.frontend.create(page, column_detector)
+        line_classifications = [tabio.column_detection.read_line_classification(line, labeled_boxes) for line in lines]
 
         usable_features = []
         usable_label_indexes = []
@@ -127,22 +124,22 @@ def prepare_data(pages):
             #filter out lines that have no manual label
             if c is not None:
                 #get rid of the column classification, and only keep the line class
-                line_class = config.interpret_label(c)[1]
-                if line_class not in config.class_map.keys():
+                line_class = tabio.config.interpret_label(c)[1]
+                if line_class not in tabio.config.class_map.keys():
                     print("Warning: "+line_class+" not in class dicitonary")
                     continue
                 try:
                     # class_index = classes.index(line_class)
-                    class_index = config.mapped_classes.index(config.class_map[line_class])
+                    class_index = tabio.config.mapped_classes.index(tabio.config.class_map[line_class])
                     usable_features.append(f)
-                    usable_label_indexes.append(class_index) 
+                    usable_label_indexes.append(class_index)
                     usable_lines.append(li)
                 except ValueError:
                     continue
         if len(usable_features)==0 or len(usable_lines)==0:
                continue
 
-        text_features = lexical.create_lexical_features(lexical_model, usable_lines)
+        text_features = tabio.lexical.create_lexical_features(lexical_model, usable_lines)
         print(text_features.shape)
         train_textf = vcat_with_check(train_textf,text_features)
         print(train_textf.shape)
@@ -166,8 +163,8 @@ def prepare_data(pages):
 
 
 def train():
-    train_dataloader = prepare_data(data_loader.training_pages())
-    
+    train_dataloader = prepare_data(tabio.data_loader.training_pages())
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = LineModel()
     model = model.to(device)
@@ -180,10 +177,10 @@ def train():
         for images, text_feat, labels in train_dataloader:
             images,textf,labels = images.to(device),text_feat.to(device),labels.to(device)
             images = images[:,None,:,:]
-        
+
             # Training pass
             optimizer.zero_grad()
-            
+
             output = model(images,textf)
 
             ### print output
@@ -203,15 +200,15 @@ def train():
 
 
 def test():
-    classes = config.classes
-    test_dataloader = prepare_data(data_loader.test_pages())
+    classes = tabio.config.classes
+    test_dataloader = prepare_data(tabio.data_loader.test_pages())
     model = load()
 
     correct = 0
     total = 0
     allref = []
     allhyp = []
-    tuner = torch.tensor([config.tune]*10)
+    tuner = torch.tensor([tabio.config.tune]*10)
     all_proba = []
     for images, textf, labels in test_dataloader:
         images = images[:,None,:,:]
@@ -230,12 +227,12 @@ def test():
         allhyp.extend(list(predicted))
         print(labels)
         print(predicted)
-    fpr,tpr = roc_curve(allref,all_proba,[0])
+    fpr,tpr = tabio.metrics.roc_curve(allref,all_proba,[0])
     pickle.dump([fpr,tpr],open("roc.pickle","wb"))
     tp=0
     fn=0
     fp=0
-    mapped_classes = config.mapped_classes
+    mapped_classes = tabio.config.mapped_classes
     for i in range(len(allref)):
         if "Tab" in mapped_classes[allref[i]] or 'Frame' in mapped_classes[allref[i]]:
             if "Tab" in mapped_classes[allhyp[i]] or 'Frame' in mapped_classes[allhyp[i]]:

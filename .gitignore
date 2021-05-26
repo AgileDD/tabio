@@ -6,3 +6,10 @@ __pycache__
 *.pickle
 *.pkl
 *.pickel
+
+# Vscode
+.vscode/*
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/

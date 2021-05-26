@@ -8,13 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw
 
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
-
-import csv_file
-import data_loader
-import mask
-import pascalvoc
+import tabio.csv_file
+import tabio.data_loader
+import tabio.mask
+import tabio.pascalvoc
 
 
 # split the line into two parts where the first part contains chars.x < width
@@ -23,11 +20,11 @@ def split_line(line, width):
     right = None
     def add(c, bbox, out_line, side):
         if out_line is None:
-            return csv_file.Line(text=c, bboxes=[bbox], bbox=bbox, side=side)
-        return csv_file.Line(
+            return tabio.csv_file.Line(text=c, bboxes=[bbox], bbox=bbox, side=side)
+        return tabio.csv_file.Line(
             text=out_line.text+c,
             bboxes=out_line.bboxes+[bbox],
-            bbox=csv_file.bbox_union(out_line.bbox, bbox),
+            bbox=tabio.csv_file.bbox_union(out_line.bbox, bbox),
             side=side)
 
     for c, bbox in zip(line.text, line.bboxes):
@@ -82,12 +79,11 @@ def split_and_order(items, columns, item_splitter):
 # split only the double columnd lines, and return
 # a singular list of all the masks
 #
-# this is usefull so all the masks can be treated 
+# this is usefull so all the masks can be treated
 # individually and as a single column
 def split_masks(masks, columns):
     return split_and_order(masks, columns, split_mask)
 
 def split_lines(lines, columns):
-    (width, _) = csv_file.size(lines)
+    (width, _) = tabio.csv_file.size(lines)
     return split_and_order(lines, columns, lambda l: split_line(l, width / 2.0))
-

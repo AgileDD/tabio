@@ -13,11 +13,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from scipy.signal import decimate
 
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
-
-import csv_file
-
+import tabio.csv_file
 
 def create(lines, background=None):
     max_x=0
@@ -77,7 +73,7 @@ def split(mask, lines):
 
 if __name__ == '__main__':
     fname = sys.argv[1]
-    lines = csv_file.read_csv(fname)
+    lines = tabio.csv_file.read_csv(fname)
     mask = create(lines)
     mask.save('mask.png', 'PNG')
 

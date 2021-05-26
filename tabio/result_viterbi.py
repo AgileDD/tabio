@@ -1,10 +1,12 @@
 import string
-import seaborn as sn
-import pandas as pd
+import sys
+
 import matplotlib.pyplot as plt
 import numpy
-import config
-import sys
+import pandas as pd
+import seaborn as sn
+
+import tabio.config
 
 def transform_classes(sequence):
     result = []
@@ -53,8 +55,8 @@ def pr_rec(status, hypothesis, reference):
 
 def confusionMatrix(allref,allvi):
     outputs = ''
-    classes = config.classes
-    array_vi = numpy.zeros(shape=(len(classes),len(classes))) 
+    classes = tabio.config.classes
+    array_vi = numpy.zeros(shape=(len(classes),len(classes)))
     dicClasses = {classe: i for i, classe in enumerate(classes)}
     for ref,vi in zip(allref, allvi):
         if(ref not in classes or vi not in classes):

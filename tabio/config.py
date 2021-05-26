@@ -53,7 +53,7 @@ classes = mapped_classes
 # be treated as if they are full width
 #
 # Disabling column detection speeds up processing and prevents
-# misclassifying a single column as double if it is known that 
+# misclassifying a single column as double if it is known that
 # there are no double columns
 enable_column_detection = True
 
@@ -66,6 +66,5 @@ tune = [0.4,-0.4]
 def interpret_label(label):
     if not enable_column_detection:
         return ('SingleColumn', label)
-    
     column_class, line_class = label.split("-")
-    return (column, line_class)
+    return (column_class, line_class)

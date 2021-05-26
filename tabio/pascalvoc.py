@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as et
 from collections import namedtuple
+
 import matplotlib.patches as patches
 
 BBox = namedtuple('BBox', ['left', 'bottom', 'right', 'top'])

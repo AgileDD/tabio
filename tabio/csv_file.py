@@ -1,18 +1,18 @@
 #!/opt/anaconda3/bin/python
 
-import sys
-import os.path
-from pascalvoc import BBox
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from PIL import Image
-from PIL import ImageDraw
-import numpy as np
-import statistics
-from collections import namedtuple
-import subprocess
-import pascalvoc
 import math
+import os.path
+import statistics
+import subprocess
+import sys
+from collections import namedtuple
+
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image, ImageDraw
+
+import tabio.pascalvoc
 
 
 def bbox_union(a, b):
@@ -20,7 +20,7 @@ def bbox_union(a, b):
         return b
     if b == None:
         return a
-    return BBox(
+    return tabio.pascalvoc.BBox(
         min(a.left, b.left), max(a.bottom, b.bottom),
         max(a.right, b.right), min(a.top, b.top))
 
@@ -56,7 +56,7 @@ def read_csv(fname):
             info = obj[i]
             xScale = 300.0/72.0
             yScale = xScale
-            bbox = BBox(
+            bbox = tabio.pascalvoc.BBox(
                 (info.x)*xScale,
                 (info.y)*yScale,
                 (info.x+info.width)*xScale,
@@ -295,7 +295,7 @@ class CSV2Obj():
                 self.dir = float(char_attributes[14])
                 self.xDirAdj = float(char_attributes[15])
                 self.yDirAdj = float(char_attributes[16])
-            
+
             elif len(char_attributes) == 16 or len(char_attributes) == 15:
                 if char_attributes[0] == '"':
                     self.unicode = ','
@@ -376,7 +376,7 @@ def getText(structure):
     avg_width = avg_width/len(structure)
     if avg_width == 0:
         avg_width = 1
-        messages.Log("WARNING: Found average width zero in getText. Length of structure = "+str(len(structure)))
+        print("WARNING: Found average width zero in getText. Length of structure = "+str(len(structure)))
 
     for character in structure:
         # processing each object in list of objects
@@ -446,7 +446,7 @@ if __name__ == '__main__':
 
 
 
-    labeled_boxes = pascalvoc.read(base_fname+'.xml')
+    labeled_boxes = tabio.pascalvoc.read(base_fname+'.xml')
 
     line_bboxes = []
 
@@ -483,10 +483,7 @@ if __name__ == '__main__':
 
 
     draw(lines, ax)
-    pascalvoc.draw(labeled_boxes, ax)
+    tabio.pascalvoc.draw(labeled_boxes, ax)
 
     plt.show()
     fig.savefig('fig.jpg', bbox_inches='tight', dpi=150)
-
-
-

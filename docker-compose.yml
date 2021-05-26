@@ -8,7 +8,17 @@ services:
       - LOG_LEVEL=debug
       - WORKERS_PER_CORE=4
     volumes:
-      - './app:/app'
+      - '.:/app'
+    build:
+      context: ./
+      dockerfile: Dockerfile
+  prod:
+    container_name: "Tabio"
+    ports:
+      - '80:80'
+    environment:
+      - LOG_LEVEL=info
+      - WORKERS_PER_CORE=4
     build:
       context: ./
       dockerfile: Dockerfile
