@@ -1,7 +1,8 @@
 import numpy as np
 
+
 def _wagner_fischer(word_1, word_2):
-    n = len(word_1) + 1  # counting empty string 
+    n = len(word_1) + 1  # counting empty string
     m = len(word_2) + 1  # counting empty string
 
     # initialize D matrix
@@ -13,10 +14,10 @@ def _wagner_fischer(word_1, word_2):
     # of booleans, used as flags. if B(i,j) = (1, 1, 0) for example,
     # the distance computed in D(i,j) came from a deletion or a
     # substitution. This is used to compute backtracking later.
-    B = np.zeros(shape=(n, m), dtype=[("del", 'b'), 
+    B = np.zeros(shape=(n, m), dtype=[("del", 'b'),
                       ("sub", 'b'),
                       ("ins", 'b')])
-    B[1:,0] = (1, 0, 0) 
+    B[1:,0] = (1, 0, 0)
     B[0,1:] = (0, 0, 1)
 
     for i, l_1 in enumerate(word_1, start=1):
@@ -54,7 +55,7 @@ def _align(word_1, word_2, bt):
 
     backtrace = bt[::-1]  # make it a forward trace
 
-    for k in range(len(backtrace) - 1): 
+    for k in range(len(backtrace) - 1):
         i_0, j_0 = backtrace[k]
         i_1, j_1 = backtrace[k+1]
 

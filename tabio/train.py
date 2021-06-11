@@ -1,5 +1,5 @@
-import tabio.config
 import tabio.column_detection
+import tabio.config
 import tabio.line_classifier
 
 if __name__ == "__main__":

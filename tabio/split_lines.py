@@ -18,6 +18,7 @@ import tabio.pascalvoc
 def split_line(line, width):
     left = None
     right = None
+
     def add(c, bbox, out_line, side):
         if out_line is None:
             return tabio.csv_file.Line(text=c, bboxes=[bbox], bbox=bbox, side=side)
@@ -36,6 +37,8 @@ def split_line(line, width):
     return (left, right)
 
 # split  mask in half
+
+
 def split_mask(mmask):
     mask_cut_point = mmask.width / 2
     lmask = mmask.crop((0, 0, mask_cut_point, mmask.height))
@@ -48,6 +51,8 @@ def split_mask(mmask):
 # Each item will be split according to the item_splitter function
 #
 # The output order will follow a natural reading order
+
+
 def split_and_order(items, columns, item_splitter):
     output = []
     current_left = []
@@ -81,8 +86,11 @@ def split_and_order(items, columns, item_splitter):
 #
 # this is usefull so all the masks can be treated
 # individually and as a single column
+
+
 def split_masks(masks, columns):
     return split_and_order(masks, columns, split_mask)
+
 
 def split_lines(lines, columns):
     (width, _) = tabio.csv_file.size(lines)

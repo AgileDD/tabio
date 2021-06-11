@@ -40,17 +40,20 @@ def stage1(lines, background):
 # then double column features are split so the output
 # list of features can be treated as though the whole
 # page is single column
+
+
 def stage2(lines, masks, column_classifier):
     columns = list(column_classifier(lines, masks))
     # columns = eval_col.column_detector(masks)
     feature_vectors = tabio.split_lines.split_masks(masks, columns)
-    feature_vectors = map(lambda m: m.resize((100, 20), resample=Image.BICUBIC), feature_vectors)
+    feature_vectors = map(lambda m: m.resize(
+        (100, 20), resample=Image.BICUBIC), feature_vectors)
 
     lines = tabio.split_lines.split_lines(lines, columns)
 
     # lines[n] correlates with feature_vectors[n]
 
-    #after splitting lines, some parts may be None due to having no characters
+    # after splitting lines, some parts may be None due to having no characters
     # in one half after splitting. Remove the corresponding feature vector
     # since it represents blank space
     feature_vectors_final = []
@@ -60,7 +63,7 @@ def stage2(lines, masks, column_classifier):
             feature_vectors_final.append(f)
             lines_final.append(l)
 
-    #features can be modified - add lexigraphical things here to feature_vectors_final
+    # features can be modified - add lexigraphical things here to feature_vectors_final
 
     return (feature_vectors_final, lines_final)
 
@@ -71,7 +74,7 @@ def create(page, column_classifier):
     background = Image.open(page.background_fname)
     masks = stage1(lines, background)
 
-    #now we have 1 mask per line, detect columns
+    # now we have 1 mask per line, detect columns
     return stage2(lines, masks, column_classifier)
 
 
@@ -92,15 +95,15 @@ if __name__ == '__main__':
     # todo: implement real column detection, for now
     #       get the info from the labeled boxes
 
-
     for page in tabio.data_loader.test_pages():
         labeled_boxes = read_labels(page)
         print(page)
 
-
-        column_detector = lambda lines, masks: [tabio.column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
+        def column_detector(lines, masks): return [
+            tabio.column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
         (features, lines) = create(page, column_detector)
-        labels = map(lambda l: tabio.column_detection.read_line_classification(l, labeled_boxes), lines)
+        labels = map(lambda l: tabio.column_detection.read_line_classification(
+            l, labeled_boxes), lines)
 
         out_dir = test_dir if page.hash in tabio.data_loader.test_hashes else train_dir
         for i, (feature, label) in enumerate(zip(features, labels)):
@@ -108,4 +111,5 @@ if __name__ == '__main__':
                 continue
             label = tabio.config.interpret_label(label)[1]
             mkdir(f"{out_dir}/{label}")
-            feature.save(f"{out_dir}/{label}/{page.hash}_{page.page_number}_{i}.png", 'PNG')
+            feature.save(
+                f"{out_dir}/{label}/{page.hash}_{page.page_number}_{i}.png", 'PNG')

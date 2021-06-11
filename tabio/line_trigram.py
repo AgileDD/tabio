@@ -21,17 +21,22 @@ import tabio.split_lines
 #
 # The listused to train a language model to predict
 # the order of classes
+
+
 def create_training_text(page):
     labeled_boxes = tabio.pascalvoc.read(page.label_fname)
 
     lines = tabio.frontend.read_lines(page)
-    columns = map(lambda l: tabio.column_detection.fake_column_detection(l, labeled_boxes), lines)
+    columns = map(lambda l: tabio.column_detection.fake_column_detection(
+        l, labeled_boxes), lines)
     lines = tabio.split_lines.split_lines(lines, columns)
 
     lines = filter(lambda l: l is not None, lines)
-    labels = map(lambda l: tabio.column_detection.read_line_classification(l, labeled_boxes), lines)
+    labels = map(lambda l: tabio.column_detection.read_line_classification(
+        l, labeled_boxes), lines)
     labels = filter(lambda l: l is not None, labels)
     return map(lambda l: tabio.config.class_map[tabio.config.interpret_label(l)[1]], labels)
+
 
 def load():
     with open(os.path.join(os.path.dirname(__file__), 'line_ngram.pkl'), 'rb') as fin:

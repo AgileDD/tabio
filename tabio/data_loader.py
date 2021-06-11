@@ -10,11 +10,12 @@ import pdf2image
 import tabio.config
 import tabio.csv_file
 
-
-Page = namedtuple('Page', ['hash', 'page_number', 'csv_fname', 'label_fname', 'background_fname'])
+Page = namedtuple('Page', ['hash', 'page_number',
+                  'csv_fname', 'label_fname', 'background_fname'])
 
 in_dir = tabio.config.in_dir
 test_hashes = tabio.config.test_hashes
+
 
 def find_matching_file(label_fname, extension):
     simple_fname = os.path.splitext(label_fname)[0]+extension
@@ -23,13 +24,16 @@ def find_matching_file(label_fname, extension):
 
     # part of the page deosn't match. Label files have two pages numbers but only 1 matters
     dir_name = os.path.dirname(label_fname)
-    (doc_hash, page_number) = os.path.splitext(os.path.basename(label_fname))[0].split('_')
+    (doc_hash, page_number) = os.path.splitext(
+        os.path.basename(label_fname))[0].split('_')
 
-    single_page_fname = os.path.join(dir_name, doc_hash+'_'+str(page_number)+extension)
+    single_page_fname = os.path.join(
+        dir_name, doc_hash+'_'+str(page_number)+extension)
     if os.path.exists(single_page_fname):
         return single_page_fname
 
-    double_page_fname = os.path.join(dir_name, doc_hash+'_'+str(page_number)+'_'+str(page_number)+extension)
+    double_page_fname = os.path.join(
+        dir_name, doc_hash+'_'+str(page_number)+'_'+str(page_number)+extension)
     if os.path.exists(double_page_fname):
         return double_page_fname
 
@@ -38,6 +42,7 @@ def find_matching_file(label_fname, extension):
 
 def find_matching_csv(label_fname):
     return find_matching_file(label_fname, '.csv')
+
 
 def find_matching_jpg(label_fname):
     return find_matching_file(label_fname, '.jpg')
@@ -52,7 +57,8 @@ def all_pages():
         if csv_fname is None:
             continue
 
-        (doc_hash, page_number) = os.path.splitext(os.path.basename(csv_fname))[0].split('_')
+        (doc_hash, page_number) = os.path.splitext(
+            os.path.basename(csv_fname))[0].split('_')
 
         yield Page(doc_hash, page_number, csv_fname, label_fname, background_fname)
 
@@ -70,6 +76,8 @@ def test_pages():
 
 # returns a page data structure given a real pdf and page number
 # - pdf does not have to be in the data directory
+
+
 def page_from_pdf(pdf_path, page_number):
     dirname, pdf_name = os.path.split(pdf_path)
 
