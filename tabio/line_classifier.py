@@ -69,7 +69,7 @@ class LineModel(nn.Module):
 
 def load():
     model = torch.load(os.path.join(
-        os.path.dirname(__file__), './trained_net.pth'))
+        os.path.dirname(__file__), 'models', 'trained_net.pt'))
     model.eval()
     return model
 
@@ -201,7 +201,7 @@ def train():
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'line_classifier'
-    torch.save(model, './trained_net.pth')
+    torch.save(model, os.path.join("models", 'trained_net.pt'))
 
 
 def test():
@@ -231,7 +231,7 @@ def test():
         print(labels)
         print(predicted)
     fpr, tpr = tabio.metrics.roc_curve(allref, all_proba, [0])
-    pickle.dump([fpr, tpr], open("roc.pickle", "wb"))
+    pickle.dump([fpr, tpr], open("roc.pt", "wb"))
     tp = 0
     fn = 0
     fp = 0
@@ -249,7 +249,7 @@ def test():
     print("Recall="+str(tp/(tp+fn)))
     cf = confusion_matrix(allref, allhyp)
     print(cf)
-    pickle.dump(cf, open("cf.pickle", "wb"))
+    pickle.dump(cf, open("cf.pt", "wb"))
     print(correct)
     print(total)
 

@@ -20,7 +20,7 @@ import tabio.split_lines
 
 
 def load():
-    return pickle.load(open(os.path.join(os.path.dirname(__file__), "lexical_model.pickle"), "rb"))
+    return pickle.load(open(os.path.join(os.path.dirname(__file__), "models", "lexical_model.pt"), "rb"))
 
 
 def create_lexical_features(lexical_model, lines):
@@ -95,4 +95,4 @@ if __name__ == '__main__':
     print(cfr.score(X_test, labels_test))
     Y_test = cfr.predict(X_test)
     print(classification_report(labels_test, Y_test))
-    pickle.dump([tfidf, ts, tfidfw, tsw], open("lexical_model.pickle", "wb"))
+    pickle.dump([tfidf, ts, tfidfw, tsw], open(os.path.join("models", "lexical_model.pt"), "wb"))

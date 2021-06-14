@@ -71,7 +71,7 @@ def load():
         return None
 
     model = torch.load(os.path.join(
-        os.path.dirname(__file__), './col_trained_net.pth'))
+        os.path.dirname(__file__), 'models', 'col_trained_net.pt'))
     model.eval()
     return model
 
@@ -185,7 +185,7 @@ def train():
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'column_detection'
-    torch.save(model, './col_trained_net.pth')
+    torch.save(model, os.path.join('models', 'col_trained_net.pt'))
 
 
 def test():

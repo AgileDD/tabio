@@ -39,7 +39,7 @@ def create_training_text(page):
 
 
 def load():
-    with open(os.path.join(os.path.dirname(__file__), 'line_ngram.pkl'), 'rb') as fin:
+    with open(os.path.join(os.path.dirname(__file__), 'models', 'line_ngram.pt'), 'rb') as fin:
         return pickle.load(fin)
 
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     model = KneserNeyInterpolated(n)
     model.fit(train_data, padded_sents)
 
-    with open('line_ngram.pkl', 'wb') as fout:
+    with open(os.path.join('models', 'line_ngram.pt'), 'wb') as fout:
         pickle.dump(model, fout)
 
     print('generated data: '+' '.join(model.generate(20, random_seed=7)))

@@ -6,6 +6,7 @@ __pycache__
 *.pickle
 *.pkl
 *.pickel
+*.pt
 
 # Vscode
 .vscode/*
