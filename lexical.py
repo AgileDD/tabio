@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	X = tfidf.fit_transform(lines_train)
 	ts = TruncatedSVD(n_components=100)
 	ts.fit(X)
-	tfidfw = TfidfVectorizer(analyzer="word", ngram_range=(1, 2), strip_accents="unicode", decode_error="ignore")
+	tfidfw = TfidfVectorizer(analyzer="char", ngram_range=(1, 2), strip_accents="unicode", decode_error="ignore")
 	Xw = tfidfw.fit_transform(lines_train)
 	tsw = TruncatedSVD(n_components=100)
 	tsw.fit(Xw)

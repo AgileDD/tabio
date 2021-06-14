@@ -35,21 +35,24 @@ class LineModel(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
         self.conv2_bn = nn.BatchNorm2d(64)
 
-        self.conv5 = nn.Conv2d(64, 64, kernel_size=3)
-        self.conv5_bn = nn.BatchNorm2d(64)
+        self.conv5 = nn.Conv2d(64, 128, kernel_size=3,stride=2)
+        self.conv5_bn = nn.BatchNorm2d(128)
         self.dropout = nn.Dropout2d()
-        self.dense1 = nn.Linear(in_features=17664, out_features=512)# Good for scaling 128x128 images
+        self.dense1 = nn.Linear(in_features=1408, out_features=512)# Good for scaling 128x128 images
 
         self.dense1_bn = nn.BatchNorm1d(512)
         self.dense2 = nn.Linear(512+200, len(config.mapped_classes))
+        # self.dense2 = nn.Linear(512, len(config.mapped_classes))
         self.double()
 
     def forward(self, x, textf):
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
-        x = F.relu(self.conv5_bn(self.conv5(x)))
+        x = F.relu(F.max_pool2d(self.conv5_bn(self.conv5(x)), 2))
         x = x.view(-1, self.num_flat_features(x)) #reshape
+        # print(x.shape)
         x = F.relu(self.dense1_bn(self.dense1(x)))
+        # x = F.relu(self.dense2(x))
         x = F.relu(self.dense2(torch.cat((x,textf),dim=1)))
         return F.log_softmax(x)
 

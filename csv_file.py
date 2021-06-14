@@ -33,10 +33,12 @@ Line = namedtuple('Line', ['text', 'bboxes', 'bbox', 'side'])
 # each line is separated by a '\n' char in the csv
 def read_csv(fname):
     obj = csvfile2Object(fname)
+    if len(obj) == 0:
+        print("{} empty csv".format(fname))
+        return []
+
     text = getText(obj)
-
     lines = []
-
     line_bbox = None
     line_bboxes = []
     line_chars = []

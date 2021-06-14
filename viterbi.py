@@ -191,13 +191,16 @@ if __name__ == '__main__':
     print(f"{'status':<10}{'hypothesis':<24}{'reference':<24}")
 
     for page in list(data_loader.test_pages()):
-        features, lines = frontend.create(page, lambda ls, ms: column_detection.eval(column_model, ms))
-        lexical_features = lexical.create_lexical_features(lexical_model, lines)
-        hypothesis = search_page(transition_model, emission_model, features, lexical_features)
+        try:
+        	features, lines = frontend.create(page, lambda ls, ms: column_detection.eval(column_model, ms))
+        	lexical_features = lexical.create_lexical_features(lexical_model, lines)
+        	hypothesis = search_page(transition_model, emission_model, features, lexical_features)
 
-        reference_lines, truth = page_truth(page)
+        	reference_lines, truth = page_truth(page)
 
-        aligned_ref, aligned_hyp, alignment_status = align.align(truth, hypothesis)
+        	aligned_ref, aligned_hyp, alignment_status = align.align(truth, hypothesis)
+        except:
+                continue
         for r,h,s in zip(aligned_ref, aligned_hyp, alignment_status):
             if r is None:
                 r = '-'
