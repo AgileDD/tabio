@@ -12,3 +12,10 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
