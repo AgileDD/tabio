@@ -67,9 +67,8 @@ class LineModel(nn.Module):
         return num_features
 
 
-def load():
-    model = torch.load(os.path.join(
-        os.path.dirname(__file__), 'models', 'trained_net.pt'))
+def load(path):
+    model = torch.load(os.path.join(path, 'trained_net.pt'))
     model.eval()
     return model
 
@@ -171,7 +170,7 @@ def prepare_data(pages):
     return data.DataLoader(train_dataset, batch_size=10, shuffle=True, drop_last=True)
 
 
-def train():
+def train(path):
     train_dataloader = prepare_data(tabio.data_loader.training_pages())
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -201,7 +200,7 @@ def train():
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'line_classifier'
-    torch.save(model, os.path.join("models", 'trained_net.pt'))
+    torch.save(model, os.path.join(path, 'trained_net.pt'))
 
 
 def test():

@@ -19,8 +19,9 @@ import tabio.pascalvoc
 import tabio.split_lines
 
 
-def load():
-    return pickle.load(open(os.path.join(os.path.dirname(__file__), "models", "lexical_model.pt"), "rb"))
+def load(path):
+    with open(os.path.join(path, "lexical_model.pt"), 'rb') as f:
+        return pickle.load(f)
 
 
 def create_lexical_features(lexical_model, lines):

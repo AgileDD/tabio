@@ -38,8 +38,8 @@ def create_training_text(page):
     return map(lambda l: tabio.config.class_map[tabio.config.interpret_label(l)[1]], labels)
 
 
-def load():
-    with open(os.path.join(os.path.dirname(__file__), 'models', 'line_ngram.pt'), 'rb') as fin:
+def load(path):
+    with open(os.path.join(path, 'line_ngram.pt'), 'rb') as fin:
         return pickle.load(fin)
 
 

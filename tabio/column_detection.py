@@ -66,12 +66,10 @@ class ColumnModel(nn.Module):
         return num_features
 
 
-def load():
+def load(path):
     if not tabio.config.enable_column_detection:
         return None
-
-    model = torch.load(os.path.join(
-        os.path.dirname(__file__), 'models', 'col_trained_net.pt'))
+    model = torch.load(os.path.join(path, 'col_trained_net.pt'))
     model.eval()
     return model
 
@@ -121,7 +119,7 @@ def eval(model, masks):
     return map(lambda h: tabio.config.col_class_inference[h], class_ids)
 
 
-def train():
+def train(path):
     classes = tabio.config.col_classes
     all_masks = []
     all_col_labels = []
@@ -185,7 +183,7 @@ def train():
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'column_detection'
-    torch.save(model, os.path.join('models', 'col_trained_net.pt'))
+    torch.save(model, os.path.join(path, 'col_trained_net.pt'))
 
 
 def test():

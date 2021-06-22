@@ -13,9 +13,6 @@ import tabio.csv_file
 Page = namedtuple('Page', ['hash', 'page_number',
                   'csv_fname', 'label_fname', 'background_fname'])
 
-in_dir = tabio.config.in_dir
-test_hashes = tabio.config.test_hashes
-
 
 def find_matching_file(label_fname, extension):
     simple_fname = os.path.splitext(label_fname)[0]+extension
@@ -49,40 +46,35 @@ def find_matching_jpg(label_fname):
 
 
 def all_pages():
-    label_files = glob(f'{in_dir}/*/*.xml')
+    label_files = glob(f'{tabio.config.in_dir}/*/*.xml')
     csv_files = map(find_matching_csv, label_files)
     background_files = map(find_matching_jpg, label_files)
 
     for (label_fname, csv_fname, background_fname) in zip(label_files, csv_files, background_files):
         if csv_fname is None:
             continue
-
         (doc_hash, page_number) = os.path.splitext(
             os.path.basename(csv_fname))[0].split('_')
-
         yield Page(doc_hash, page_number, csv_fname, label_fname, background_fname)
 
 
 def training_pages():
     for page in all_pages():
-        if page.hash not in test_hashes:
+        if page.hash not in tabio.config.test_hashes:
             yield page
 
 
 def test_pages():
     for page in all_pages():
-        if page.hash in test_hashes:
+        if page.hash in tabio.config.test_hashes:
             yield page
-
 # returns a page data structure given a real pdf and page number
 # - pdf does not have to be in the data directory
 
 
 def page_from_pdf(pdf_path, page_number):
     dirname, pdf_name = os.path.split(pdf_path)
-
     hash = os.path.splitext(pdf_name)[0]
-
     background_fname = os.path.join(dirname, hash+'_'+str(page_number)+'.jpg')
     if not os.path.exists(background_fname):
         image = pdf2image.convert_from_bytes(
@@ -91,12 +83,10 @@ def page_from_pdf(pdf_path, page_number):
             last_page=page_number,
             dpi=300)
         image[0].save(background_fname, 'JPEG')
-
     page = Page(
         hash,
         page_number,
         tabio.csv_file.create_csv_from_pdf(pdf_path, page_number),
         None,
         background_fname)
-
     return page
