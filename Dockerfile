@@ -1,5 +1,4 @@
-FROM nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV PYTHONDONTWRITEBYTECODE 1
