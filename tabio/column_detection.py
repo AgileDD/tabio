@@ -187,7 +187,7 @@ def train(path):
 
 
 def test():
-    model = load()
+    model = load(os.path.join("app", "models", "iqc_tabio"))
 
     all_col_labels = []
     all_col_preds = []

@@ -34,10 +34,10 @@ def eval(pdf_path, page_number, tm, em, cm, lm):
 
 
 if __name__ == '__main__':
-    transition_model = tabio.line_trigram.load()
-    emission_model = tabio.line_classifier.load()
-    column_model = tabio.column_detection.load()
-    lexical_model = tabio.lexical.load()
+    transition_model = tabio.line_trigram.load(os.path.join("app", "models", "iqc_tabio"))
+    emission_model = tabio.line_classifier.load(os.path.join("app", "models", "iqc_tabio"))
+    column_model = tabio.column_detection.load(os.path.join("app", "models", "iqc_tabio"))
+    lexical_model = tabio.lexical.load(os.path.join("app", "models", "iqc_tabio"))
 
     csvs = eval(sys.argv[1], int(sys.argv[2]), transition_model,
                 emission_model, column_model, lexical_model)
