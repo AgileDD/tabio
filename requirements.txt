@@ -34,4 +34,3 @@ torch
 torchvision
 tzlocal==2.0.0
 Wand==0.5.7
-jsonschema==3.2.0

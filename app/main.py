@@ -15,7 +15,7 @@ app.tabio_engine: TabioEngine = None
 
 @app.on_event("startup")
 async def startup():
-    app.tabio_engine = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
+    app.tabio_engine = TabioEngine(os.path.join("app", "models", "iqc_tabio"))
 
 
 @app.post("/table_detect/")
@@ -31,11 +31,11 @@ async def table_detect(page: int, file: UploadFile = File(...)):
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
-            status_code=400, detail="Tabio failed with error {}".format(e))
+            status_code=502, detail="Tabio failed with error {}".format(e))
     else:
         # this is file clean up    
         [os.remove(x) for x in glob.glob(
-            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(file.filename.split('.')[:-1])))]
+            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.split(file.filename)[:-1])))]
         return ujson.dumps(locations)
 
 
@@ -53,10 +53,10 @@ async def table_extract(page: int, file: UploadFile = File(...)):
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
-            status_code=400, detail="Tabio failed with error {}".format(e))
+            status_code=502, detail="Tabio failed with error {}".format(e))
     else:
         [os.remove(x) for x in glob.glob(
-            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(file.filename.split('.')[:-1])))]
+            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.split(file.filename))[:-1]))]
         return ujson.dumps(csvs)
 
 
