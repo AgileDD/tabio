@@ -2,6 +2,7 @@ import ujson
 import os
 import traceback
 import glob
+import tempfile
 from fastapi.responses import RedirectResponse
 from tabio import line_trigram, line_classifier, column_detection, lexical, data_loader, table_detection, table_extraction, config
 from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
@@ -24,18 +25,18 @@ async def table_detect(page: int, file: UploadFile = File(...)):
         Returns the detected tables coords with table index.
     """
     try:
+        tmp_file = safe_join(tempfile.gettempdir(), os.path.join(tempfile.gettempdir(), file.filename))
         contents = await file.read()
-        with open(file.filename, "wb") as _temp:
+        with open(tmp_file, "wb") as _temp:
             _temp.write(contents)
-        locations = app.tabio_engine.detect(file.filename, page)
+        locations = app.tabio_engine.detect(tmp_file, page)
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
             status_code=502, detail="Tabio failed with error {}".format(e))
     else:
-        # this is file clean up    
         [os.remove(x) for x in glob.glob(
-            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.split(file.filename)[:-1])))]
+            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.splitext(tmp_file)[:-1])))]
         return ujson.dumps(locations)
 
 
@@ -46,17 +47,18 @@ async def table_extract(page: int, file: UploadFile = File(...)):
     """
     csvs = None
     try:
+        tmp_file = safe_join(tempfile.gettempdir(), os.path.join(tempfile.gettempdir(), file.filename))
         contents = await file.read()
-        with open(file.filename, "wb") as _temp:
+        with open(tmp_file, "wb") as _temp:
             _temp.write(contents)
-        csvs = app.tabio_engine.inference(file.filename, page)
+        csvs = app.tabio_engine.inference(tmp_file, page)
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
             status_code=502, detail="Tabio failed with error {}".format(e))
     else:
         [os.remove(x) for x in glob.glob(
-            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.split(file.filename))[:-1]))]
+            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.splitext(tmp_file))[:-1]))]
         return ujson.dumps(csvs)
 
 

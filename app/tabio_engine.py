@@ -22,7 +22,7 @@ class TabioEngine():
                 page: page number
             Return:
                 list of tables and their results
-                [index, csv data]
+                [table cords, (index, table data)]
         """
         return table_extraction.eval(
                 pdf_path, page, self.transition_model, self.emission_model, self.column_model, self.lexical_model)
