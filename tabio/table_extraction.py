@@ -17,7 +17,6 @@ import tabio.table_detection
 
 
 def eval(pdf_path, page_number, tm, em, cm, lm):
-    csvs = list()
     page = tabio.data_loader.page_from_pdf(pdf_path, page_number)
     table_areas = tabio.table_detection.eval(tm, em, cm, lm, page)
     for index, area in enumerate(table_areas):
@@ -28,9 +27,10 @@ def eval(pdf_path, page_number, tm, em, cm, lm):
             area.right * 72.0/300.0,)
         extracted_tables = read_pdf(
             pdf_path, pages=page.page_number, area=tabula_area)
+        outputs = [(tabula_area, [])]  # [(cords, [index, table data])]
         for t in extracted_tables:
-            csvs.append([index, t.to_json()])
-    return csvs
+            outputs[0][1].append((index, t.to_json()))
+    return outputs
 
 
 if __name__ == '__main__':
@@ -39,7 +39,9 @@ if __name__ == '__main__':
     column_model = tabio.column_detection.load(os.path.join("app", "models", "iqc_tabio"))
     lexical_model = tabio.lexical.load(os.path.join("app", "models", "iqc_tabio"))
 
-    csvs = eval(sys.argv[1], int(sys.argv[2]), transition_model,
+    output = eval(sys.argv[1], int(sys.argv[2]), transition_model,
                 emission_model, column_model, lexical_model)
-    for c in csvs:
-        print(c)
+    cords, tables = output[0]
+    print(cords)
+    for t in tables:
+        print(t)
