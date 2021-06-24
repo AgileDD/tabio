@@ -174,7 +174,7 @@ def remove_margin(lines):
     for line in lines:
         shifted_bboxes = []
         for bbox in line.bboxes:
-            shifted_bboxes.append(BBox(
+            shifted_bboxes.append(tabio.pascalvoc.BBox(
                 left=bbox.left-min_x,
                 top=bbox.top-min_y,
                 right=bbox.right-min_x,
@@ -183,7 +183,7 @@ def remove_margin(lines):
         result.append(Line(
             text=line.text,
             bboxes=shifted_bboxes,
-            bbox=BBox(
+            bbox=tabio.pascalvoc.BBox(
                 left=line.bbox.left-min_x,
                 top=line.bbox.top-min_y,
                 right=line.bbox.right-min_x,
