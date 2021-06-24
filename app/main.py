@@ -25,19 +25,18 @@ async def table_detect(page: int, file: UploadFile = File(...)):
         Returns the detected tables coords with table index.
     """
     try:
-        tmp_file = safe_join(tempfile.gettempdir(), os.path.join(tempfile.gettempdir(), file.filename))
         contents = await file.read()
-        with open(tmp_file, "wb") as _temp:
-            _temp.write(contents)
-        locations = app.tabio_engine.detect(tmp_file, page)
+        junk_file_name = ""
+        with tempfile.NamedTemporaryFile() as temp:
+            junk_file_name = temp.name
+            temp.write(contents)
+            return ujson.dumps(app.tabio_engine.detect(temp.name, page))
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
             status_code=502, detail="Tabio failed with error {}".format(e))
-    else:
-        [os.remove(x) for x in glob.glob(
-            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.splitext(tmp_file)[:-1])))]
-        return ujson.dumps(locations)
+    finally:
+        [os.remove(x) for x in glob.glob("{}*".format(junk_file_name))]
 
 
 @app.post("/table_extract/")
@@ -45,21 +44,19 @@ async def table_extract(page: int, file: UploadFile = File(...)):
     """
        Returns the detected tables from a page as json with table index.
     """
-    csvs = None
     try:
-        tmp_file = safe_join(tempfile.gettempdir(), os.path.join(tempfile.gettempdir(), file.filename))
         contents = await file.read()
-        with open(tmp_file, "wb") as _temp:
-            _temp.write(contents)
-        csvs = app.tabio_engine.inference(tmp_file, page)
+        junk_file_name = ""
+        with tempfile.NamedTemporaryFile() as temp:
+            junk_file_name = temp.name
+            temp.write(contents)
+            return ujson.dumps(app.tabio_engine.inference(temp.name, page))
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
             status_code=502, detail="Tabio failed with error {}".format(e))
-    else:
-        [os.remove(x) for x in glob.glob(
-            "{}/{}*".format(os.path.abspath(os.getcwd()), ".".join(os.path.splitext(tmp_file))[:-1]))]
-        return ujson.dumps(csvs)
+    finally:
+        [os.remove(x) for x in glob.glob("{}*".format(junk_file_name))]
 
 
 @app.post("/training/")
