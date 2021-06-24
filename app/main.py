@@ -34,7 +34,7 @@ async def table_detect(page: int, file: UploadFile = File(...)):
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
-            status_code=502, detail="Tabio failed with error {}".format(e))
+            status_code=500, detail="Tabio failed with error {}".format(e))
     finally:
         [os.remove(x) for x in glob.glob("{}*".format(junk_file_name))]
 
@@ -54,7 +54,7 @@ async def table_extract(page: int, file: UploadFile = File(...)):
     except Exception as e:
         print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
-            status_code=502, detail="Tabio failed with error {}".format(e))
+            status_code=500, detail="Tabio failed with error {}".format(e))
     finally:
         [os.remove(x) for x in glob.glob("{}*".format(junk_file_name))]
 
