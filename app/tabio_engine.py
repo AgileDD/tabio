@@ -6,8 +6,9 @@ from app.exceptions import ApplicationError, InvalidModelConfiguration
 
 class TabioEngine():
     def __init__(self, model_path) -> None:
-        self.validate_model()
         self.model_path = model_path
+        # validate model config files
+        self.validate_model()
         # load the models
         self.transition_model = line_trigram.load(model_path)
         self.emission_model = line_classifier.load(model_path)

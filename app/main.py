@@ -4,7 +4,6 @@ import traceback
 import glob
 import tempfile
 from fastapi.responses import RedirectResponse
-from tabio import line_trigram, line_classifier, column_detection, lexical, data_loader, table_detection, table_extraction, config
 from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
 from app.tabio_engine import TabioEngine
 from app.util import safe_join
@@ -16,7 +15,8 @@ app.tabio_engine: TabioEngine = None
 
 @app.on_event("startup")
 async def startup():
-    app.tabio_engine = TabioEngine(os.path.join("app", "models", "iqc_tabio"))
+    app.tabio_engine = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
+    print("Tabio started with model {}".format(app.tabio_engine.model_path))
 
 
 @app.post("/table_detect/")
