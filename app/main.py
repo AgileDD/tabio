@@ -8,10 +8,24 @@ from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
 from app.tabio_engine import TabioEngine
 from app.util import safe_join
 
+
+class TaskState:
+    def __init__(self):
+        self.status = 0
+
+    def background_work(self, train_func, path):
+        self.status = 1
+        train_func(path)
+        self.status = 0
+
+    def state(self):
+        return self.status
+
+
 app = FastAPI(title="Tabio API",
               description="REST API endpoint for running documents through Tabio", redoc_url=None)
 app.tabio_engine: TabioEngine = None
-
+app.state = TaskState()
 
 @app.on_event("startup")
 async def startup():
@@ -64,6 +78,18 @@ def training(dataset_dir: str, background_tasks: BackgroundTasks):
     """
         Train tabio models
     """
-    path = safe_join("/data", os.path.join("/data", dataset_dir))
-    background_tasks.add_task(app.tabio_engine.train, path)
-    return {"result": "Started Training"}
+    if app.state.state() == 0:
+        path = safe_join("/data", os.path.join("/data", dataset_dir))
+        background_tasks.add_task(app.state.background_work, app.tabio_engine.train, path)
+        return {"status": "Training has started"}
+    else:
+        return {"status": "Training is already running"}
+
+@app.get("/training_status/")
+def training_status():
+    """
+        Training status of the model
+            0 means not running
+            1 means running
+    """
+    return {"status": app.state.state()}
