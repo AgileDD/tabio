@@ -4,6 +4,15 @@ from tabio import line_trigram, line_classifier, column_detection, lexical, data
 
 from app.exceptions import ApplicationError, InvalidModelConfiguration
 
+
+def convert_to_json(data):
+    output = list()
+    for res in data:
+        output_dict = {"top": res[0][0], "left": res[0][1], "bottom": res[0][2], "right": res[0][3], "table_data": []}
+        for t in res[1]:
+            output_dict["table_data"].append(t.to_csv())
+        output.append(output_dict)
+    return output
 class TabioEngine():
     def __init__(self, model_path) -> None:
         self.model_path = model_path
@@ -15,14 +24,7 @@ class TabioEngine():
         self.column_model = column_detection.load(model_path)
         self.lexical_model = lexical.load(model_path)
 
-    def convert_to_list(self, data):
-        output = list()
-        for res in data:
-            output_dict = {"top": res[0][0], "left": res[0][1], "bottom": res[0][2], "right": res[0][3], "table_data": []}
-            for t in res[1]:
-                output_dict["table_data"].append(t.to_csv())
-            output.append(output_dict)
-        return output
+
 
     def inference(self, pdf_path: str, page: int) -> list:
         """
@@ -34,7 +36,7 @@ class TabioEngine():
                 list of tables and their results
                 [(cords, table data)]
         """
-        return self.convert_to_list(table_extraction.eval(
+        return convert_to_json(table_extraction.eval(
                 pdf_path, page, self.transition_model, self.emission_model, self.column_model, self.lexical_model))
 
     def detect(self, pdf_path: str, page: int) -> list:
