@@ -1,4 +1,3 @@
-import ujson
 import os
 import traceback
 import glob
@@ -44,9 +43,9 @@ async def table_detect(page: int, file: UploadFile = File(...)):
         with tempfile.NamedTemporaryFile() as temp:
             junk_file_name = temp.name
             temp.write(contents)
-            return ujson.dumps(app.tabio_engine.detect(temp.name, page))
+            return app.tabio_engine.detect(temp.name, page)
     except Exception as e:
-        print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
+        print("Failure with tabio: {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
             status_code=500, detail="Tabio failed with error {}".format(e))
     finally:
@@ -64,9 +63,9 @@ async def table_extract(page: int, file: UploadFile = File(...)):
         with tempfile.NamedTemporaryFile() as temp:
             junk_file_name = temp.name
             temp.write(contents)
-            return ujson.dumps(app.tabio_engine.inference(temp.name, page))
+            return app.tabio_engine.inference(temp.name, page)
     except Exception as e:
-        print("Failure with tabio {}\n{}".format(e, traceback.format_exc()))
+        print("Failure with tabio: {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
             status_code=500, detail="Tabio failed with error {}".format(e))
     finally:
@@ -88,8 +87,8 @@ def training(dataset_dir: str, background_tasks: BackgroundTasks):
 @app.get("/training_status/")
 def training_status():
     """
-        Training status of the model
+        Training state of the model
             0 means not running
             1 means running
     """
-    return {"status": app.state.state()}
+    return {"state": app.state.state()}

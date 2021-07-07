@@ -15,6 +15,15 @@ class TabioEngine():
         self.column_model = column_detection.load(model_path)
         self.lexical_model = lexical.load(model_path)
 
+    def convert_to_list(self, data):
+        output = list()
+        for res in data:
+            output_dict = {"top": res[0][0], "left": res[0][1], "bottom": res[0][2], "right": res[0][3], "table_data": []}
+            for t in res[1]:
+                output_dict["table_data"].append(t.to_csv())
+            output.append(output_dict)
+        return output
+
     def inference(self, pdf_path: str, page: int) -> list:
         """
             Get tables for a specific page in a document
@@ -25,8 +34,8 @@ class TabioEngine():
                 list of tables and their results
                 [(cords, table data)]
         """
-        return table_extraction.eval(
-                pdf_path, page, self.transition_model, self.emission_model, self.column_model, self.lexical_model)
+        return self.convert_to_list(table_extraction.eval(
+                pdf_path, page, self.transition_model, self.emission_model, self.column_model, self.lexical_model))
 
     def detect(self, pdf_path: str, page: int) -> list:
         """
@@ -36,16 +45,16 @@ class TabioEngine():
                 page: page number
             Return:
                 list of cords and their index
-                [index, (top, left, bottom, right)]
+                [{top, left, bottom, right}]
         """
-        locations = list()  # [index, (top, left, bottom, right)]
+        locations = list()
         page_data = data_loader.page_from_pdf(pdf_path, page)
         table_areas = table_detection.eval(
             self.transition_model, self.emission_model, self.column_model, self.lexical_model, page_data)
         for index, area in enumerate(table_areas):
             k = 72.0/300.0
             locations.append(
-                [index, (area.top*k, area.left*k, area.bottom*k, area.right*k)])
+                {"top": area.top*k, "left": area.left*k, "bottom": area.bottom*k, "right": area.right*k})
         return locations
 
     def train(self, training_dir: str) -> None:
