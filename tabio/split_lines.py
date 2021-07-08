@@ -1,30 +1,31 @@
-import sys
-import os
 import errno
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from PIL import Image
-from PIL import ImageDraw
-import numpy as np
-import pascalvoc
-import mask
-import csv_file
-import data_loader
+import os
+import sys
 
+import matplotlib
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image, ImageDraw
+
+import tabio.csv_file
+import tabio.data_loader
+import tabio.mask
+import tabio.pascalvoc
 
 
 # split the line into two parts where the first part contains chars.x < width
 def split_line(line, width):
     left = None
     right = None
+
     def add(c, bbox, out_line, side):
         if out_line is None:
-            return csv_file.Line(text=c, bboxes=[bbox], bbox=bbox, side=side)
-        return csv_file.Line(
+            return tabio.csv_file.Line(text=c, bboxes=[bbox], bbox=bbox, side=side)
+        return tabio.csv_file.Line(
             text=out_line.text+c,
             bboxes=out_line.bboxes+[bbox],
-            bbox=csv_file.bbox_union(out_line.bbox, bbox),
+            bbox=tabio.csv_file.bbox_union(out_line.bbox, bbox),
             side=side)
 
     for c, bbox in zip(line.text, line.bboxes):
@@ -36,6 +37,8 @@ def split_line(line, width):
     return (left, right)
 
 # split  mask in half
+
+
 def split_mask(mmask):
     mask_cut_point = mmask.width / 2
     lmask = mmask.crop((0, 0, mask_cut_point, mmask.height))
@@ -48,6 +51,8 @@ def split_mask(mmask):
 # Each item will be split according to the item_splitter function
 #
 # The output order will follow a natural reading order
+
+
 def split_and_order(items, columns, item_splitter):
     output = []
     current_left = []
@@ -79,12 +84,14 @@ def split_and_order(items, columns, item_splitter):
 # split only the double columnd lines, and return
 # a singular list of all the masks
 #
-# this is usefull so all the masks can be treated 
+# this is usefull so all the masks can be treated
 # individually and as a single column
+
+
 def split_masks(masks, columns):
     return split_and_order(masks, columns, split_mask)
 
-def split_lines(lines, columns):
-    (width, _) = csv_file.size(lines)
-    return split_and_order(lines, columns, lambda l: split_line(l, width / 2.0))
 
+def split_lines(lines, columns):
+    (width, _) = tabio.csv_file.size(lines)
+    return split_and_order(lines, columns, lambda l: split_line(l, width / 2.0))

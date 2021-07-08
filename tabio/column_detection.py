@@ -1,31 +1,34 @@
-import csv_file
-import config
-import torch
-import numpy as np
-from torch.utils import data
-from torch import nn
-import torch.nn.functional as F
-from PIL import Image
 import os.path
 import sys
-import data_loader
-import frontend
-from sklearn.metrics import confusion_matrix
+
+import numpy as np
 import scipy.signal
+import torch
+import torch.nn.functional as F
+from PIL import Image
+from sklearn.metrics import confusion_matrix
+from torch import nn
+from torch.utils import data
+
+import tabio.config
+import tabio.csv_file
+import tabio.data_loader
+import tabio.frontend
 
 
 def read_line_classification(line, labeled_boxes):
     for bbox in line.bboxes:
         for l in labeled_boxes:
-            if csv_file.is_bbox_inside(l.bbox, bbox):
+            if tabio.csv_file.is_bbox_inside(l.bbox, bbox):
                 return l.name
-    return config.unlabeled_class
+    return tabio.config.unlabeled_class
+
 
 def fake_column_detection(line, labeled_boxes):
     classification = read_line_classification(line, labeled_boxes)
     if classification is None:
         return None
-    return config.interpret_label(classification)[0]
+    return tabio.config.interpret_label(classification)[0]
 
 
 class ColumnModel(nn.Module):
@@ -39,8 +42,9 @@ class ColumnModel(nn.Module):
         self.conv5 = nn.Conv2d(64, 64, kernel_size=3)
         self.conv5_bn = nn.BatchNorm2d(64)
         self.dropout = nn.Dropout2d()
-        self.dense1 = nn.Linear(in_features=36864, out_features=512)# Good for scaling 128x128 images
-        
+        # Good for scaling 128x128 images
+        self.dense1 = nn.Linear(in_features=36864, out_features=512)
+
         self.dense1_bn = nn.BatchNorm1d(512)
         self.dense2 = nn.Linear(512, 3)
         self.double()
@@ -49,7 +53,7 @@ class ColumnModel(nn.Module):
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
         x = F.relu(self.conv5_bn(self.conv5(x)))
-        x = x.view(-1, self.num_flat_features(x)) #reshape
+        x = x.view(-1, self.num_flat_features(x))  # reshape
         x = F.relu(self.dense1_bn(self.dense1(x)))
         x = F.relu(self.dense2(x))
         return F.log_softmax(x)
@@ -62,69 +66,71 @@ class ColumnModel(nn.Module):
         return num_features
 
 
-def load():
-    if not config.enable_column_detection:
+def load(path):
+    if not tabio.config.enable_column_detection:
         return None
-
-    model = torch.load(os.path.join(os.path.dirname(__file__), './col_trained_net.pth'))
+    model = torch.load(os.path.join(path, 'col_trained_net.pt'))
     model.eval()
     return model
 
 # given a list of masks (one mask per line on a page) classify each one as single or double column
 # returns a list of classifications
+
+
 def eval(model, masks):
-    if not config.enable_column_detection:
+    if not tabio.config.enable_column_detection:
         return ['SingleColumn'] * len(masks)
-    
+
     ms = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), masks)
     ms = list(map(np.array, ms))
     labels = [0]*len(ms)
     test_features = np.array(ms)/128.0
     test_targets = np.array(labels)
 
-    #print(test_targets.shape)
-    #print(test_features.shape)
-
+    # print(test_targets.shape)
+    # print(test_features.shape)
 
     Samples = len(test_targets)
 
     torch_test_X = torch.from_numpy(test_features)
     torch_test_Y = torch.from_numpy(test_targets)
 
-    test_dataset = data.TensorDataset(torch_test_X,torch_test_Y)
-    test_dataloader = data.DataLoader(test_dataset,batch_size=10,shuffle=False)
+    test_dataset = data.TensorDataset(torch_test_X, torch_test_Y)
+    test_dataloader = data.DataLoader(
+        test_dataset, batch_size=10, shuffle=False)
 
     allhyp = []
 
     for images, labels in test_dataloader:
-        images = images[:,None,:,:]
+        images = images[:, None, :, :]
         outputs = model(images)
-        #print(outputs)
+        # print(outputs)
 
         _, predicted = torch.max(outputs, 1)
-        #for i in predicted:
+        # for i in predicted:
         #    print(i)
-        #print('')
+        # print('')
         allhyp.extend(list(predicted))
-        #print(predicted)=
+        # print(predicted)=
 
     class_ids = [int(h.numpy()) for h in allhyp]
     class_ids = scipy.signal.medfilt(class_ids, 5)
 
-    return map(lambda h: config.col_class_inference[h], class_ids)
+    return map(lambda h: tabio.config.col_class_inference[h], class_ids)
 
 
-def train():
-    classes = config.col_classes
+def train(path):
+    classes = tabio.config.col_classes
     all_masks = []
     all_col_labels = []
-    for page in list(data_loader.training_pages()):
+    for page in list(tabio.data_loader.training_pages()):
         print(page)
-        labeled_boxes = frontend.read_labels(page)
-        lines = frontend.read_lines(page)
+        labeled_boxes = tabio.frontend.read_labels(page)
+        lines = tabio.frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
         background = Image.open(page.background_fname)
-        masks = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC), frontend.stage1(lines, background))
+        masks = map(lambda m: m.resize((200, 20), resample=Image.BICUBIC),
+                    tabio.frontend.stage1(lines, background))
         masks = list(map(np.array, masks))
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
         all_masks.extend(list(masks))
@@ -137,35 +143,35 @@ def train():
     print(train_targets.shape)
     print(train_features.shape)
 
-
     Samples = len(train_targets)
 
     torch_train_X = torch.from_numpy(train_features)
     torch_train_Y = torch.from_numpy(train_targets)
 
-    train_dataset = data.TensorDataset(torch_train_X,torch_train_Y)
-    train_dataloader = data.DataLoader(train_dataset,batch_size=10,shuffle=True)
+    train_dataset = data.TensorDataset(torch_train_X, torch_train_Y)
+    train_dataloader = data.DataLoader(
+        train_dataset, batch_size=10, shuffle=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ColumnModel()
     model = model.to(device)
-    criterion = nn.NLLLoss()# Optimizers require the parameters to optimize and a learning rate
+    # Optimizers require the parameters to optimize and a learning rate
+    criterion = nn.NLLLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=0.0003)
     epochs = 30
     for e in range(epochs):
         running_loss = 0
         loss_len = 0
         for images, labels in train_dataloader:
-            images,labels = images.to(device),labels.to(device)
-            images = images[:,None,:,:]
+            images, labels = images.to(device), labels.to(device)
+            images = images[:, None, :, :]
 
-        
             # Training pass
             optimizer.zero_grad()
-            
+
             output = model(images)
-            ### print output
-            ### print labels
+            # print output
+            # print labels
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
@@ -174,33 +180,34 @@ def train():
         print("Training loss: "+str(running_loss/loss_len))
         # print("Training loss: "+str(loss.item()))
 
-    device= torch.device("cpu")
-    model=model.to(device)
+    device = torch.device("cpu")
+    model = model.to(device)
     model.__module__ = 'column_detection'
-    torch.save(model, './col_trained_net.pth')
+    torch.save(model, os.path.join(path, 'col_trained_net.pt'))
 
 
 def test():
-    model = load()
+    model = load(os.path.join("/app", "models", "iqc_tabio"))
 
     all_col_labels = []
     all_col_preds = []
-    for page in data_loader.test_pages():
+    for page in tabio.data_loader.test_pages():
         print(page)
-        labeled_boxes = frontend.read_labels(page)
-        lines = frontend.read_lines(page)
+        labeled_boxes = tabio.frontend.read_labels(page)
+        lines = tabio.frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
         background = Image.open(page.background_fname)
-        masks = frontend.stage1(lines, background)
+        masks = tabio.frontend.stage1(lines, background)
         col_preds = eval(model, masks)
-        
+
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
         all_col_labels.extend(col_labs)
         all_col_preds.extend(col_preds)
 
-    all_col_labels = list(map(lambda l: l if l is not None else 'SingleColumn', all_col_labels))
+    all_col_labels = list(
+        map(lambda l: l if l is not None else 'SingleColumn', all_col_labels))
 
-    cf = confusion_matrix(all_col_labels,all_col_preds)
+    cf = confusion_matrix(all_col_labels, all_col_preds)
     print(cf)
 
 

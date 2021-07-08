@@ -6,65 +6,65 @@
 #
 # A table detector can then use the classifications to lines representing tables on the page
 
-import data_loader
-import line_trigram
-import frontend
-import pascalvoc
-import column_detection
-import torch
-import numpy as np
-from PIL import Image
-from collections import namedtuple
-import os.path
-
 import cProfile
-
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from PIL import Image
-from PIL import ImageDraw
-import csv_file
-import config
-import line_classifier
-import split_lines
 import itertools
-import align
+import os.path
+import sys
+from collections import namedtuple
+
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
 import scipy.signal
-import lexical
+import torch
+from PIL import Image, ImageDraw
+
+import tabio.align
+import tabio.column_detection
+import tabio.config
+import tabio.csv_file
+import tabio.data_loader
+import tabio.frontend
+import tabio.lexical
+import tabio.line_classifier
+import tabio.line_trigram
+import tabio.pascalvoc
+import tabio.split_lines
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
     V = [{}]
     path = {}
- 
+
     # Initialize base cases (t == 0)
     for y in states:
         V[0][y] = start_p[y] + emit_p(y, obs[0])
         path[y] = [y]
-    
+
     # alternative Python 2.7+ initialization syntax
     # V = [{y:(start_p[y] * emit_p[y][obs[0]]) for y in states}]
     # path = {y:[y] for y in states}
- 
+
     # Run Viterbi for t > 0
     for t in range(1, len(obs)):
         V.append({})
         newpath = {}
- 
+
         for y in states:
-            (prob, state) = max((V[t-1][y0] + trans_p(y0, y) + emit_p(y, obs[t]), y0) for y0 in states)
+            (prob, state) = max(
+                (V[t-1][y0] + trans_p(y0, y) + emit_p(y, obs[t]), y0) for y0 in states)
             V[t][y] = prob
             newpath[y] = path[state] + [y]
-            
- 
+
         # Don't need to remember the old paths
         path = newpath
         #print('.', end='', flush=True)
-        
-    #print('')
-    #print_dptable(V)
+
+    # print('')
+    # print_dptable(V)
     (prob, state) = max((V[t][y], y) for y in states)
     return (prob, path[state])
+
 
 def print_dptable(V):
     s = "    " + " ".join(("%7d" % i) for i in range(len(V))) + "\n"
@@ -74,9 +74,12 @@ def print_dptable(V):
         s += "\n"
     print(s)
 
-classes = config.classes
+
+classes = tabio.config.classes
 
 # runs viterbi search on a page and returns a list of classes, one per line
+
+
 def search_page(transition_model, emission_model, features, lexical_features):
     State = namedtuple('State', ['class_id', 'context_id'])
 
@@ -84,11 +87,11 @@ def search_page(transition_model, emission_model, features, lexical_features):
 
     states = []
 
-    #create initial states
+    # create initial states
     for i in class_ids:
         states.append(State(i, -1))
-    
-    #create trigram states
+
+    # create trigram states
     for i in class_ids:
         for j in class_ids:
             states.append(State(i, j))
@@ -103,11 +106,11 @@ def search_page(transition_model, emission_model, features, lexical_features):
     def transition_probability(prev_id, next_id):
         prev = states[prev_id]
         next = states[next_id]
-        #never move back to an initial state
+        # never move back to an initial state
         if next.context_id == -1:
             return log_zero
 
-        #don't allow moving to a state where the context doesn't match
+        # don't allow moving to a state where the context doesn't match
         if prev.class_id != next.context_id:
             return log_zero
 
@@ -137,8 +140,10 @@ def search_page(transition_model, emission_model, features, lexical_features):
 
     best_classes = []
 
-    emission_scores = line_classifier.eval(emission_model, features, lexical_features)
-    emission_scores = list(map(lambda s: s.detach().cpu().numpy(), emission_scores))
+    emission_scores = tabio.line_classifier.eval(
+        emission_model, features, lexical_features)
+    emission_scores = list(
+        map(lambda s: s.detach().cpu().numpy(), emission_scores))
 
     def emit_p(state_id, feature_id):
         state = states[state_id]
@@ -147,19 +152,21 @@ def search_page(transition_model, emission_model, features, lexical_features):
 
     start_probabilities = []
     for i in range(len(classes)):
-        start_probabilities.append(lm_weight * transition_model.logscore(classes[i], None))
+        start_probabilities.append(
+            lm_weight * transition_model.logscore(classes[i], None))
 
     start_probabilities += [log_zero] * (len(classes) * len(classes))
 
     feature_ids = list(range(len(features)))
-    prob, path = viterbi(feature_ids, state_ids, start_probabilities, trans_p, emit_p)
+    prob, path = viterbi(feature_ids, state_ids,
+                         start_probabilities, trans_p, emit_p)
 
     class_ids = [states[p].class_id for p in path]
     orig_ids = class_ids
     class_ids = scipy.signal.medfilt(class_ids, 5)
     class_ids = [int(i) for i in class_ids]
 
-    #for o,f in zip(orig_ids, class_ids):
+    # for o,f in zip(orig_ids, class_ids):
     #    print(o,f)
 
     hypothesis = list(map(lambda i: classes[i], class_ids))
@@ -167,44 +174,49 @@ def search_page(transition_model, emission_model, features, lexical_features):
 
 
 def page_truth(page):
-    labeled_boxes = pascalvoc.read(page.label_fname)
-    lines = frontend.read_lines(page)
-    columns = [column_detection.fake_column_detection(l, labeled_boxes) for l in lines]
-    lines = split_lines.split_lines(lines, columns)
+    labeled_boxes = tabio.pascalvoc.read(page.label_fname)
+    lines = tabio.frontend.read_lines(page)
+    columns = [tabio.column_detection.fake_column_detection(
+        l, labeled_boxes) for l in lines]
+    lines = tabio.split_lines.split_lines(lines, columns)
 
     def GetClass(classification):
-            if classification is None:
-                return 'unknown'
-            return config.interpret_label(classification)[1]
+        if classification is None:
+            return 'unknown'
+        return tabio.config.interpret_label(classification)[1]
 
-    truth = list(map(lambda l: GetClass(column_detection.read_line_classification(l, labeled_boxes)), lines))
+    truth = list(map(lambda l: GetClass(
+        tabio.column_detection.read_line_classification(l, labeled_boxes)), lines))
     return (lines, truth)
 
 
 if __name__ == '__main__':
 
-    transition_model = line_trigram.load()
-    emission_model = line_classifier.load()
-    column_model = column_detection.load()
-    lexical_model = lexical.load()
+    transition_model = tabio.line_trigram.load(os.path.join("app", "models", "iqc_tabio"))
+    emission_model = tabio.line_classifier.load(os.path.join("app", "models", "iqc_tabio"))
+    column_model = tabio.column_detection.load(os.path.join("app", "models", "iqc_tabio"))
+    lexical_model = tabio.lexical.load(os.path.join("app", "models", "iqc_tabio"))
 
     print(f"{'status':<10}{'hypothesis':<24}{'reference':<24}")
 
-    for page in list(data_loader.test_pages()):
+    for page in list(tabio.data_loader.test_pages()):
         try:
-        	features, lines = frontend.create(page, lambda ls, ms: column_detection.eval(column_model, ms))
-        	lexical_features = lexical.create_lexical_features(lexical_model, lines)
-        	hypothesis = search_page(transition_model, emission_model, features, lexical_features)
+            features, lines = tabio.frontend.create(
+                page, lambda ls, ms: tabio.column_detection.eval(column_model, ms))
+            lexical_features = tabio.lexical.create_lexical_features(
+                lexical_model, lines)
+            hypothesis = search_page(
+                transition_model, emission_model, features, lexical_features)
 
-        	reference_lines, truth = page_truth(page)
+            reference_lines, truth = page_truth(page)
 
-        	aligned_ref, aligned_hyp, alignment_status = align.align(truth, hypothesis)
+            aligned_ref, aligned_hyp, alignment_status = tabio.align.align(
+                truth, hypothesis)
         except:
-                continue
-        for r,h,s in zip(aligned_ref, aligned_hyp, alignment_status):
+            continue
+        for r, h, s in zip(aligned_ref, aligned_hyp, alignment_status):
             if r is None:
                 r = '-'
             if h is None:
-                h =  '-'
+                h = '-'
             print(f'{s!s:<10}{h!s:<24}{r!s:<24}')
-        

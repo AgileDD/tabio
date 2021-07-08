@@ -2,3 +2,15 @@ sorted_masks*/
 train/
 test/
 __pycache__
+*.pth
+*.pickle
+*.pkl
+*.pickel
+*.pt
+
+# Vscode
+.vscode/*
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/

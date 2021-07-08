@@ -5,17 +5,20 @@
 #
 # used for creating features when classifying sections of a document
 
-import sys
-import csv_file
-from PIL import Image, ImageDraw
+import os
 import statistics
-from scipy.signal import decimate
+import sys
+
 import numpy as np
+from PIL import Image, ImageDraw
+from scipy.signal import decimate
+
+import tabio.csv_file
 
 
 def create(lines, background=None):
-    max_x=0
-    max_y=0
+    max_x = 0
+    max_y = 0
     for line in lines:
         for bbox in line.bboxes:
             if bbox is None:
@@ -28,7 +31,7 @@ def create(lines, background=None):
         mask.paste(background)
     mask_draw = ImageDraw.Draw(mask)
     if background is None:
-        mask_draw.rectangle([(0,0),mask.size], fill=255)
+        mask_draw.rectangle([(0, 0), mask.size], fill=255)
 
     for line in lines:
         for bbox in line.bboxes:
@@ -71,11 +74,11 @@ def split(mask, lines):
 
 if __name__ == '__main__':
     fname = sys.argv[1]
-    lines = csv_file.read_csv(fname)
+    lines = tabio.csv_file.read_csv(fname)
     mask = create(lines)
     mask.save('mask.png', 'PNG')
 
     masks = split(mask, lines)
     for i, m in enumerate(masks):
-        #print(i)
+        # print(i)
         m.save('mask-'+str(i)+'.png', 'PNG')

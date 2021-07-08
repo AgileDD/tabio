@@ -1,17 +1,17 @@
 import xml.etree.ElementTree as et
 from collections import namedtuple
+
 import matplotlib.patches as patches
 
 BBox = namedtuple('BBox', ['left', 'bottom', 'right', 'top'])
 NamedBox = namedtuple('NamedBox', ['name', 'bbox'])
+
 
 def read(fname):
     doc = et.parse(fname)
     root = doc.getroot()
 
     box_names = []
-
-
 
     for o in root.iter('object'):
         name = o.find('name').text
@@ -26,6 +26,7 @@ def read(fname):
 
     return box_names
 
+
 def draw(labeled_boxes, ax):
     for box in labeled_boxes:
         b = box.bbox
@@ -33,5 +34,5 @@ def draw(labeled_boxes, ax):
             (b.left, b.bottom),
             (b.right-b.left),
             (b.top-b.bottom),
-            linewidth=1,edgecolor='g',facecolor='none')
+            linewidth=1, edgecolor='g', facecolor='none')
         ax.add_patch(rect)
