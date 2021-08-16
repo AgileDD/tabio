@@ -5,18 +5,11 @@ services:
     ports:
       - '0.0.0.0:8810:80'
     volumes:
-      - './models:/app/tabio/models'
-      - '../shared_data:/data'
+      - '../tabio_models:/app/tabio/models'
+      - '../data:/data'
     environment:
       - LOG_LEVEL=info
-      - MAX_WORKERS=4
+      - MAX_WORKERS=1
     build:
       context: ./
       dockerfile: Dockerfile
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['0']
-            capabilities: [gpu]

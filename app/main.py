@@ -33,6 +33,12 @@ def start_job(background_tasks, func, *args):
     return new_task
 
 
+@app.on_event("startup")
+async def startup():
+    app.tabio_engine = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
+    print("Tabio started with model {}".format(app.tabio_engine.model_path))
+
+
 @app.post("/table_detect/")
 async def table_detect(page: int, file: UploadFile = File(...)):
     """
@@ -83,12 +89,14 @@ def training(model_path: str, dataset_dir: str, background_tasks: BackgroundTask
         Train tabio models
     """
     tabio = TabioEngine(model_path)
+    path = safe_join("/data", os.path.join("/data", "tabio_training_data", dataset_dir))
     return start_job(background_tasks, tabio.train, safe_join("/data", os.path.join("/data", dataset_dir)))
 
 
-@app.get("/task/{uid}/status")
-def training_status(uid: UUID):
+@app.get("/training_status/")
+def training_status():
     """
         Training status
     """
     return job.find(uid)
+
