@@ -37,3 +37,4 @@ Wand==0.5.7
 pydantic~=1.8.2
 fastapi~=0.67.0
 python-multipart
+pymupdf

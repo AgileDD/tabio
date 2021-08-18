@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os.path
-import sys
+import fitz
 from collections import namedtuple
 from glob import glob
 
@@ -24,6 +24,11 @@ def find_matching_file(label_fname, extension):
     (doc_hash, page_number) = os.path.splitext(
         os.path.basename(label_fname))[0].split('_')
 
+    # for pdfs we only want cksum
+    pdf_fname = os.path.join(dir_name, f"{doc_hash}.cksum.pdf")
+    if os.path.exists(pdf_fname):
+        return pdf_fname
+
     single_page_fname = os.path.join(
         dir_name, doc_hash+'_'+str(page_number)+extension)
     if os.path.exists(single_page_fname):
@@ -37,25 +42,20 @@ def find_matching_file(label_fname, extension):
     return None
 
 
-def find_matching_csv(label_fname):
-    return find_matching_file(label_fname, '.csv')
-
-
-def find_matching_jpg(label_fname):
-    return find_matching_file(label_fname, '.jpg')
+def find_matching_pdfs(label_fname):
+    return find_matching_file(label_fname, '.cksum.pdf')
 
 
 def all_pages():
     label_files = glob(f'{tabio.config.in_dir}/*/*.xml')
-    csv_files = map(find_matching_csv, label_files)
-    background_files = map(find_matching_jpg, label_files)
-
-    for (label_fname, csv_fname, background_fname) in zip(label_files, csv_files, background_files):
-        if csv_fname is None:
-            continue
-        (doc_hash, page_number) = os.path.splitext(
-            os.path.basename(csv_fname))[0].split('_')
-        yield Page(doc_hash, page_number, csv_fname, label_fname, background_fname)
+    pdf_files = map(find_matching_pdfs, label_files)
+    try:
+        for label_fname, pdf in zip(label_files, pdf_files):
+            doc = fitz.open(pdf)
+            for pageNum in range(1, doc.page_count):
+                yield page_from_pdf(pdf, pageNum, label_fname)
+    except Exception as e:
+        print(e)
 
 
 def training_pages():
@@ -68,11 +68,9 @@ def test_pages():
     for page in all_pages():
         if page.hash in tabio.config.test_hashes:
             yield page
-# returns a page data structure given a real pdf and page number
-# - pdf does not have to be in the data directory
 
 
-def page_from_pdf(pdf_path, page_number):
+def page_from_pdf(pdf_path, page_number, label_fname=None):
     dirname, pdf_name = os.path.split(pdf_path)
     hash = os.path.splitext(pdf_name)[0]
     background_fname = os.path.join(dirname, hash+'_'+str(page_number)+'.jpg')
@@ -87,6 +85,6 @@ def page_from_pdf(pdf_path, page_number):
         hash,
         page_number,
         tabio.csv_file.create_csv_from_pdf(pdf_path, page_number),
-        None,
+        label_fname,
         background_fname)
     return page
