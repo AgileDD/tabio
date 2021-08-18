@@ -8,23 +8,24 @@ from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
 
 from app.tabio_engine import TabioEngine
 from app.util import safe_join
-from . import job
+from . import jobs
+
 
 app = FastAPI(title="Tabio API",
               description="REST API endpoint for running documents through Tabio", redoc_url=None)
-job.connect()
+jobs.connect()
+
 
 
 def run_job(uid, func, *args):
-    _job = job.find(uid)
+    job = jobs.find(uid)
     try:
-        _job.result = func(*args)
-        _job.status = "complete"
+        job.result = func(*args)
+        job.status = "complete"
     except:
-        _job.status = "failed"
+        job.status = "failed"
     finally:
-        _job.save()
-
+        job.save()
 
 def start_job(background_tasks, func, *args):
     new_task = job.Job()
@@ -33,10 +34,6 @@ def start_job(background_tasks, func, *args):
     return new_task
 
 
-@app.on_event("startup")
-async def startup():
-    app.tabio_engine = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
-    print("Tabio started with model {}".format(app.tabio_engine.model_path))
 
 
 @app.post("/table_detect/")
@@ -84,19 +81,18 @@ async def table_extract(page: int, file: UploadFile = File(...)):
 
 
 @app.post("/train/")
-def training(model_path: str, dataset_dir: str, background_tasks: BackgroundTasks):
+def train(dataset_dir: str, background_tasks: BackgroundTasks):
     """
         Train tabio models
     """
-    tabio = TabioEngine(model_path)
+    tabio = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
     path = safe_join("/data", os.path.join("/data", "tabio_training_data", dataset_dir))
-    return start_job(background_tasks, tabio.train, safe_join("/data", os.path.join("/data", dataset_dir)))
+    return start_job(background_tasks, tabio.train, path)
 
 
-@app.get("/training_status/")
-def training_status():
+@app.get("/task/{uid}/status")
+def training_status(uid: UUID):
     """
         Training status
     """
-    return job.find(uid)
-
+    return jobs.find(uid)

@@ -18,8 +18,6 @@ def convert_to_json(data):
 class TabioEngine:
     def __init__(self, model_path) -> None:
         self.model_path = model_path
-        # validate model config files
-        self.validate_model()
         self.transition_model = None
         self.emission_model = None
         self.column_model = None
@@ -27,6 +25,8 @@ class TabioEngine:
 
     def load(self):
         # load the models
+        # validate model config files
+        self.validate_model()
         self.transition_model = line_trigram.load(self.model_path)
         self.emission_model = line_classifier.load(self.model_path)
         self.column_model = column_detection.load(self.model_path)
@@ -73,6 +73,7 @@ class TabioEngine:
             Return:
                 None
         """
+        print(f"Training on {training_dir}")
         config.in_dir = training_dir
         if config.enable_column_detection:
             column_detection.train(self.model_path)
