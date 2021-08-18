@@ -6,6 +6,7 @@ services:
       - '0.0.0.0:8810:80'
     volumes:
       - '../tabio_models:/app/tabio/models'
+      - '.:/app'
       - '../data:/data'
     environment:
       - LOG_LEVEL=info
@@ -13,3 +14,5 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+    entrypoint: /start-reload.sh
+
