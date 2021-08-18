@@ -78,6 +78,7 @@ class TabioEngine:
         if config.enable_column_detection:
             column_detection.train(self.model_path)
         line_classifier.train(self.model_path)
+        print(f"Training finished wrote to {self.model_path}")
 
     def validate_model(self) -> bool:
         """

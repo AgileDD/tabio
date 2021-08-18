@@ -135,6 +135,7 @@ def train(path):
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
         all_masks.extend(list(masks))
         all_col_labels.extend(col_labs)
+        print(labeled_boxes, lines, masks, col_labs)
 
     labels = [classes[x] for x in all_col_labels]
     train_features = np.array(all_masks)/128.0

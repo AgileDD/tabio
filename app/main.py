@@ -87,7 +87,7 @@ def train(dataset_dir: str, background_tasks: BackgroundTasks):
     """
     tabio = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
     path = safe_join("/data", os.path.join("/data", "tabio_training_data", dataset_dir))
-    return start_job(background_tasks, tabio.train, path)
+    return {"id": start_job(background_tasks, tabio.train, path)}
 
 
 @app.get("/task/{uid}/status")
@@ -95,4 +95,4 @@ def training_status(uid: UUID):
     """
         Training status
     """
-    return jobs.find(uid)
+    return {"status": jobs.find(uid)}

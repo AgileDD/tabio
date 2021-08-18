@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   tabio:
     container_name: "Tabio"
@@ -14,5 +15,3 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    entrypoint: /start-reload.sh
-
