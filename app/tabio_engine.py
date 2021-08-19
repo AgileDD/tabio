@@ -73,12 +73,15 @@ class TabioEngine:
             Return:
                 None
         """
-        print(f"Training on {training_dir}")
-        config.in_dir = training_dir
-        if config.enable_column_detection:
-            column_detection.train(self.model_path)
-        line_classifier.train(self.model_path)
-        print(f"Training finished wrote to {self.model_path}")
+        try:
+            print(f"Training on {training_dir}")
+            config.in_dir = training_dir
+            if config.enable_column_detection:
+                column_detection.train(self.model_path)
+            line_classifier.train(self.model_path)
+            print(f"Training finished wrote to {self.model_path}")
+        except Exception as e:
+            print(f"Tabio training failed with error {e}")
 
     def validate_model(self) -> bool:
         """
