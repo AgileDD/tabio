@@ -120,11 +120,12 @@ def eval(model, masks):
 
 
 def train(path):
+    print("col det training")
     classes = tabio.config.col_classes
     all_masks = []
     all_col_labels = []
     for page in list(tabio.data_loader.training_pages()):
-        print(page)
+        print(f"preping {page}")
         labeled_boxes = tabio.frontend.read_labels(page)
         lines = tabio.frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
@@ -141,8 +142,7 @@ def train(path):
     train_features = np.array(all_masks)/128.0
     train_targets = np.array(labels)
 
-    print(train_targets.shape)
-    print(train_features.shape)
+    print(f"targets {train_targets.shape}\tfeatures {train_features.shape}")
 
     Samples = len(train_targets)
 

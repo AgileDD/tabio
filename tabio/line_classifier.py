@@ -171,6 +171,9 @@ def prepare_data(pages):
 
 
 def train(path):
+    print("line classifier training")
+
+    print("preparing data...")
     train_dataloader = prepare_data(tabio.data_loader.training_pages())
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

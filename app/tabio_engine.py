@@ -81,7 +81,7 @@ class TabioEngine:
             line_classifier.train(self.model_path)
             print(f"Training finished wrote to {self.model_path}")
         except Exception as e:
-            print(f"Tabio training failed with error {e}")
+            print(f"Tabio training failed with error {e.with_traceback()}")
 
     def validate_model(self) -> bool:
         """
