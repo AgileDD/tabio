@@ -22,7 +22,8 @@ def run_job(uid, func, *args):
     try:
         job.result = func(*args)
         job.status = "complete"
-    except:
+    except Exception as e:
+        print(f"Job {uid} failed with error {e}\t{traceback.format_exc()}")
         job.status = "failed"
     finally:
         job.save()

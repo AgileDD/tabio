@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from app.exceptions import InvalidModelConfiguration
 from tabio import line_trigram, line_classifier, column_detection, lexical, data_loader, table_detection, \
@@ -81,7 +82,7 @@ class TabioEngine:
             line_classifier.train(self.model_path)
             print(f"Training finished wrote to {self.model_path}")
         except Exception as e:
-            print(f"Tabio training failed with error {e.with_traceback()}")
+            print(f"Tabio training failed with error {e}\t{traceback.format_exc()}")
 
     def validate_model(self) -> bool:
         """
