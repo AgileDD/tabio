@@ -56,7 +56,7 @@ classes = mapped_classes
 # Disabling column detection speeds up processing and prevents
 # misclassifying a single column as double if it is known that
 # there are no double columns
-enable_column_detection = True
+enable_column_detection = False
 
 col_classes = {"SingleColumn": 0, "DoubleColumn": 1,
                "None": 2, "DoublColumn": 1, None: 2}
