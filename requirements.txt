@@ -30,8 +30,8 @@ sklearn==0.0
 soupsieve==1.9.5
 tabula-py==2.1.1
 tabulate==0.8.7
-torch~=1.9.0
-torchvision
+torch==1.4.0
+torchvision==0.5.0
 tzlocal==2.0.0
 Wand==0.5.7
 pydantic~=1.8.2
