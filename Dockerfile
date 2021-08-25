@@ -19,5 +19,3 @@ RUN python3 -m pip install --upgrade --no-cache-dir pip && \
 
 # Tabio app
 COPY . . 
-
-ENTRYPOINT [ "/start-reload.sh" ]
