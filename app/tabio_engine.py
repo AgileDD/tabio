@@ -76,6 +76,7 @@ class TabioEngine:
         """
         try:
             print(f"Training on {training_dir}")
+            self.validate_model()
             config.in_dir = training_dir
             if config.enable_column_detection:
                 column_detection.train(self.model_path)
@@ -90,12 +91,6 @@ class TabioEngine:
             Return:
                 True if model files exist
         """
-        if not os.path.exists(os.path.join(self.model_path, "col_trained_net.pt")):
-            raise InvalidModelConfiguration('col_trained_net.pt not found')
         if not os.path.exists(os.path.join(self.model_path, "lexical_model.pt")):
             raise InvalidModelConfiguration('lexical_model.pt not found')
-        if not os.path.exists(os.path.join(self.model_path, 'line_ngram.pt')):
-            raise InvalidModelConfiguration('line_ngram.pt not found')
-        if not os.path.exists(os.path.join(self.model_path, 'trained_net.pt')):
-            raise InvalidModelConfiguration('trained_net.pt not found')
         return True
