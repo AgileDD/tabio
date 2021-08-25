@@ -52,7 +52,7 @@ def all_pages():
     try:
         for label_fname, pdf in zip(label_files, pdf_files):
             doc = fitz.open(pdf)
-            for pageNum in range(1, doc.page_count):
+            for pageNum in range(1, doc.page_count+1):
                 yield page_from_pdf(pdf, pageNum, label_fname)
     except Exception as e:
         print(e)
