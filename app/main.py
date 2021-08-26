@@ -16,7 +16,6 @@ app = FastAPI(title="Tabio API",
 jobs.connect()
 
 
-
 def run_job(uid, func, *args):
     job = jobs.find(uid)
     try:
@@ -28,13 +27,12 @@ def run_job(uid, func, *args):
     finally:
         job.save()
 
+
 def start_job(background_tasks, func, *args):
-    new_task = job.Job()
+    new_task = jobs.Job()
     new_task.save()
     background_tasks.add_task(run_job, new_task.uid, func, *args)
     return new_task
-
-
 
 
 @app.post("/table_detect/")
