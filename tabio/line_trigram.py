@@ -51,10 +51,7 @@ def train(path):
     for page in tabio.data_loader.training_pages():
 
         page_classes = create_training_text(page)
-        if page.hash in tabio.data_loader.test_hashes:
-            test_text.append(list(page_classes))
-        else:
-            training_text.append(list(page_classes))
+        training_text.append(list(page_classes))
     print(training_text[:20])
     print('training...')
     n = 3
