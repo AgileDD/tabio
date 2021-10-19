@@ -3,7 +3,7 @@ import traceback
 
 from app.exceptions import InvalidModelConfiguration
 from tabio import line_trigram, line_classifier, column_detection, lexical, data_loader, table_detection, \
-    table_extraction, config
+    table_extraction, config, train
 
 
 def convert_to_json(data):
@@ -78,9 +78,7 @@ class TabioEngine:
             print(f"Training on {training_dir}")
             self.validate_model()
             config.in_dir = training_dir
-            if config.enable_column_detection:
-                column_detection.train(self.model_path)
-            line_classifier.train(self.model_path)
+            train.train(self.model_path)
             print(f"Training finished wrote to {self.model_path}")
         except Exception as e:
             print(f"Tabio training failed with error {e}\t{traceback.format_exc()}")

@@ -43,7 +43,7 @@ def load(path):
         return pickle.load(fin)
 
 
-if __name__ == '__main__':
+def train(path):
     training_text = []
     test_text = []
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     model = KneserNeyInterpolated(n)
     model.fit(train_data, padded_sents)
 
-    with open(os.path.join('models', 'line_ngram.pt'), 'wb') as fout:
+    with open(os.path.join(path, 'line_ngram.pt'), 'wb') as fout:
         pickle.dump(model, fout)
 
     print('generated data: '+' '.join(model.generate(20, random_seed=7)))
@@ -78,3 +78,7 @@ if __name__ == '__main__':
 
     print(perplexities)
     print(f'perplexity: {mean(perplexities)}')
+
+
+if __name__ == '__main__':
+    train(sys.argv[1])
