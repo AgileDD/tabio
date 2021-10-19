@@ -58,15 +58,19 @@ classes = mapped_classes
 # there are no double columns
 enable_column_detection = False
 
-col_classes = {"SingleColumn": 0, "DoubleColumn": 1,
-               "None": 2, "DoublColumn": 1, None: 2}
+col_classes = {"SingleColumn": 0, "DoubleColumn": 1, "None": 2, "DoublColumn": 1, None: 2}
 col_class_inference = {0: "SingleColumn", 1: "DoubleColumn", 2: "SingleColumn"}
-tune = [0.4, -0.4]
+
+# TUNE INFO
+# Tune is used to give bias on whether we insert or delete
+# With insertion we will get more data, but may contain junk
+# With deletion we will get less data, but may miss out on information
+# Each item in the list is linked to the mapped_classes
+# E.g. first one is for else, second is is for Table
+tune = [0, 0]
 
 # manually labeled data can be marked with column information as well as a class
 # this function returns (column_class, class)
-
-
 def interpret_label(label):
     if not enable_column_detection:
         return ('SingleColumn', label)
