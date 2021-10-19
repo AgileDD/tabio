@@ -74,7 +74,8 @@ def train(path):
             pass
 
     print(perplexities)
-    print(f'perplexity: {mean(perplexities)}')
+    if len(perplexities) != 0:
+        print(f'perplexity: {mean(perplexities)}')
 
 
 if __name__ == '__main__':
