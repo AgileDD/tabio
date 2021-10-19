@@ -88,3 +88,7 @@ def page_from_pdf(pdf_path, page_number, label_fname=None):
         label_fname,
         background_fname)
     return page
+
+
+def test_hashes():
+    return None
