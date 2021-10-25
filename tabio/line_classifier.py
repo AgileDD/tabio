@@ -49,6 +49,10 @@ class LineModel(nn.Module):
         self.double()
 
     def forward(self, x, textf):
+        if textf.size()[1]!=200:
+            print(f"Warning: Found only {textf.size()[1]} dimensions in lexical model, padding ...")
+        pad = nn.ConstantPad1d((0,200-textf.size()[1]),0.0)
+        textf = pad(textf)
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
         x = F.relu(F.max_pool2d(self.conv5_bn(self.conv5(x)), 2))
