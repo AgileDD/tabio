@@ -3,13 +3,13 @@ services:
   tabio:
     container_name: "Tabio"
     ports:
-      - '8810:80'
+      - '0.0.0.0:8810:80'
     volumes:
-      - './tabio/models:/app/tabio/models'
+      - './models:/app/tabio/models'
       - '../shared_data:/data'
     environment:
       - LOG_LEVEL=info
-      - WORKERS_PER_CORE=4
+      - MAX_WORKERS=4
     build:
       context: ./
       dockerfile: Dockerfile
