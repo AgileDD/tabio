@@ -58,7 +58,7 @@ def create_training_text(page):
     return (list(lines), list(labels))
 
 
-def train(path):
+def train(model_path):
     print('loading...')
     lines = []
     labels = []
@@ -95,7 +95,7 @@ def train(path):
     print(cfr.score(X_test, labels_test))
     Y_test = cfr.predict(X_test)
     print(classification_report(labels_test, Y_test))
-    pickle.dump([tfidf, ts, tfidfw, tsw], open(os.path.join(path, "lexical_model.pt"), "wb"))
+    pickle.dump([tfidf, ts, tfidfw, tsw], open(os.path.join(model_path, "lexical_model.pt"), "wb"))
     print("finished training lexical model")
 
 

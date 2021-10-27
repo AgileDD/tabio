@@ -119,7 +119,7 @@ def eval(model, masks):
     return map(lambda h: tabio.config.col_class_inference[h], class_ids)
 
 
-def train(path):
+def train(model_path):
     print("col det training")
     classes = tabio.config.col_classes
     all_masks = []
@@ -184,7 +184,7 @@ def train(path):
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'column_detection'
-    torch.save(model, os.path.join(path, 'col_trained_net.pt'))
+    torch.save(model, os.path.join(model_path, 'col_trained_net.pt'))
 
 
 def test():

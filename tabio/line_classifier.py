@@ -176,11 +176,11 @@ def prepare_data(pages, lexical_path):
     return data.DataLoader(train_dataset, batch_size=10, shuffle=True, drop_last=True)
 
 
-def train(path):
+def train(model_path):
     print("line classifier training")
 
     print("preparing data...")
-    train_dataloader = prepare_data(tabio.data_loader.training_pages(), path)
+    train_dataloader = prepare_data(tabio.data_loader.training_pages(), model_path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = LineModel()
@@ -209,7 +209,7 @@ def train(path):
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'line_classifier'
-    torch.save(model, os.path.join(path, 'trained_net.pt'))
+    torch.save(model, os.path.join(model_path, 'trained_net.pt'))
 
 
 def test():

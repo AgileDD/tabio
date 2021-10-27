@@ -43,7 +43,7 @@ def load(path):
         return pickle.load(fin)
 
 
-def train(path):
+def train(model_path):
     training_text = []
     test_text = []
 
@@ -59,7 +59,7 @@ def train(path):
     model = KneserNeyInterpolated(n)
     model.fit(train_data, padded_sents)
 
-    with open(os.path.join(path, 'line_ngram.pt'), 'wb') as fout:
+    with open(os.path.join(model_path, 'line_ngram.pt'), 'wb') as fout:
         pickle.dump(model, fout)
 
     print('generated data: '+' '.join(model.generate(20, random_seed=7)))
@@ -73,7 +73,6 @@ def train(path):
         except ZeroDivisionError:
             pass
 
-    print(perplexities)
     if len(perplexities) != 0:
         print(f'perplexity: {mean(perplexities)}')
 
