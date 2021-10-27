@@ -163,7 +163,7 @@ def search_page(transition_model, emission_model, features, lexical_features):
 
     class_ids = [states[p].class_id for p in path]
     orig_ids = class_ids
-    class_ids = scipy.signal.medfilt(class_ids, 5)
+    class_ids = scipy.signal.medfilt(class_ids, 3)
     class_ids = [int(i) for i in class_ids]
 
     # for o,f in zip(orig_ids, class_ids):
