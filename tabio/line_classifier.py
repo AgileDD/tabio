@@ -76,6 +76,7 @@ def load(path):
 # given a list of features each representing 1 line
 # this evaluates teh score of each class for each feature
 def eval(model, features, lexical_features):
+    print("Running eval")
     features = list(map(np.array, features))
     features = np.array(features)/128.0
     targets = np.array([0]*len(features))
@@ -97,6 +98,7 @@ def eval(model, features, lexical_features):
         # print(outputs.shape[0])
         tuner = torch.tensor([tabio.config.tune]*outputs.shape[0])
         outputs = outputs + tuner
+        print(f"{outputs=}")
         all_scores.extend(list(outputs))
     return all_scores
 

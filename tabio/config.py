@@ -33,7 +33,7 @@ test_hashes = [
 
 # classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'FrameSpareMulticolumn', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', \
 #    'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'TableSuperHeader', 'Title']
-class_map = {'Table': 'Table', 'Author': "Else", 'Equation': "Else", 'FigureCaption': "Else", 'FigureText': "Else", 'FrameSpareMulticolumn': "Table", 'Heading': "Else", 'PageFooter': "Else", 'PageHeader': "Else", 'PageNumber': "Else", 'Paragraph': "Else", 'References': "Else", 'Sparse': "Else", 'Subtitle': "Else", 'TableCaption': "Else",
+class_map = {"Else": "Else", 'Table': 'Table', 'Author': "Else", 'Equation': "Else", 'FigureCaption': "Else", 'FigureText': "Else", 'FrameSpareMulticolumn': "Table", 'Heading': "Else", 'PageFooter': "Else", 'PageHeader': "Else", 'PageNumber': "Else", 'Paragraph': "Else", 'References': "Else", 'Sparse': "Else", 'Subtitle': "Else", 'TableCaption': "Else",
              'TableFooter': "Else", 'TableSparseColumnHeader': "Table", 'TableSparseMulticolumn': "Table", 'TableSuperHeader': "Table", 'Title': "Else", 'TableSpareMulticolumn': "Table", "FrameSparseMulticolumn": "Table", "TableSparseOther": "Table", "TableCaptionContd": "Else", "TableSparse": "Table", "TableSpareColumnHeader": "Table"}
 
 # If text in the training set is not labeled, then optionally
