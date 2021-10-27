@@ -42,7 +42,7 @@ async def table_detect(page: int, file: UploadFile = File(...)):
     """
         Returns the detected tables cords with table index.
     """
-    tabio = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
+    tabio = TabioEngine(os.path.join("/app",  "tabio", "models", "iqc_tabio"))
     try:
         contents = await file.read()
         junk_file_name = ""
@@ -64,7 +64,7 @@ async def table_extract(page: int, file: UploadFile = File(...)):
     """
        Returns the detected tables from a page as json with table index.
     """
-    tabio = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
+    tabio = TabioEngine(os.path.join("/app", "tabio", "models", "iqc_tabio"))
     try:
         contents = await file.read()
         junk_file_name = ""
@@ -86,7 +86,7 @@ def train(dataset_dir: str, background_tasks: BackgroundTasks):
     """
         Train tabio models
     """
-    tabio = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
+    tabio = TabioEngine(os.path.join("/app", "tabio", "models", "iqc_tabio"))
     path = safe_join("/data", os.path.join("/data", "tabio_training_data", dataset_dir))
     return start_job(background_tasks, tabio.train, path)
 

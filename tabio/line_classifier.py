@@ -101,8 +101,8 @@ def eval(model, features, lexical_features):
     return all_scores
 
 
-def prepare_data(pages):
-    lexical_model = tabio.lexical.load()
+def prepare_data(pages, lexical_path):
+    lexical_model = tabio.lexical.load(lexical_path)
     classes = tabio.config.classes
     train_features = []
     train_targets = []
@@ -174,7 +174,7 @@ def train(path):
     print("line classifier training")
 
     print("preparing data...")
-    train_dataloader = prepare_data(tabio.data_loader.training_pages())
+    train_dataloader = prepare_data(tabio.data_loader.training_pages(), path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = LineModel()
