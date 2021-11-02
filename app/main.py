@@ -47,8 +47,8 @@ async def table_detect(page: int, file: UploadFile = File(...)):
         with tempfile.NamedTemporaryFile() as temp:
             junk_file_name = temp.name
             temp.write(contents)
-            tabio.load()
-            return tabio.detect(temp.name, page)
+            await tabio.load()
+            return await tabio.detect(temp.name, page)
     except Exception as e:
         print("Failure with tabio: {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
