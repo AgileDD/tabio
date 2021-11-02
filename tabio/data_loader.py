@@ -14,36 +14,15 @@ Page = namedtuple('Page', ['hash', 'page_number',
                   'csv_fname', 'label_fname', 'background_fname'])
 
 
-def find_matching_file(label_fname, extension):
-    simple_fname = os.path.splitext(label_fname)[0]+extension
-    if os.path.exists(simple_fname):
-        return simple_fname
-
-    # part of the page deosn't match. Label files have two pages numbers but only 1 matters
+def find_matching_pdfs(label_fname):
     dir_name = os.path.dirname(label_fname)
-    (doc_hash, page_number) = os.path.splitext(
-        os.path.basename(label_fname))[0].split('_')
-
-    # for pdfs we only want cksum
+    (doc_hash, _) = os.path.splitext(os.path.basename(label_fname))[0].split('_')
     pdf_fname = os.path.join(dir_name, f"{doc_hash}.cksum.pdf")
     if os.path.exists(pdf_fname):
         return pdf_fname
-
-    single_page_fname = os.path.join(
-        dir_name, doc_hash+'_'+str(page_number)+extension)
-    if os.path.exists(single_page_fname):
-        return single_page_fname
-
-    double_page_fname = os.path.join(
-        dir_name, doc_hash+'_'+str(page_number)+'_'+str(page_number)+extension)
-    if os.path.exists(double_page_fname):
-        return double_page_fname
-
+    else:
+        print(f"Could not find cksum pdf for {doc_hash}")
     return None
-
-
-def find_matching_pdfs(label_fname):
-    return find_matching_file(label_fname, '.cksum.pdf')
 
 
 def all_pages():
