@@ -76,19 +76,8 @@ class TabioEngine:
         """
         try:
             print(f"Training on {training_dir}")
-            self.validate_model()
             config.in_dir = training_dir
             train.train(self.model_path)
             print(f"Training finished wrote to {self.model_path}")
         except Exception as e:
             print(f"Tabio training failed with error {e}\t{traceback.format_exc()}")
-
-    def validate_model(self) -> bool:
-        """
-            File validation
-            Return:
-                True if model files exist
-        """
-        if not os.path.exists(os.path.join(self.model_path, "lexical_model.pt")):
-            raise InvalidModelConfiguration('lexical_model.pt not found')
-        return True
