@@ -26,8 +26,6 @@ class TabioEngine:
 
     def load(self):
         # load the models
-        # validate model config files
-        self.validate_model()
         self.transition_model = line_trigram.load(self.model_path)
         self.emission_model = line_classifier.load(self.model_path)
         self.column_model = column_detection.load(self.model_path)
