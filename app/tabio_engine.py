@@ -1,8 +1,9 @@
 import os
+import traceback
 
-from tabio import line_trigram, line_classifier, column_detection, lexical, data_loader, table_detection, table_extraction, config
-
-from app.exceptions import ApplicationError, InvalidModelConfiguration
+from app.exceptions import InvalidModelConfiguration
+from tabio import line_trigram, line_classifier, column_detection, lexical, data_loader, table_detection, \
+    table_extraction, config, train
 
 
 def convert_to_json(data):
@@ -13,18 +14,22 @@ def convert_to_json(data):
             output_dict["table_data"].append(t.to_csv())
         output.append(output_dict)
     return output
-class TabioEngine():
+
+
+class TabioEngine:
     def __init__(self, model_path) -> None:
         self.model_path = model_path
-        # validate model config files
-        self.validate_model()
+        self.transition_model = None
+        self.emission_model = None
+        self.column_model = None
+        self.lexical_model = None
+
+    def load(self):
         # load the models
-        self.transition_model = line_trigram.load(model_path)
-        self.emission_model = line_classifier.load(model_path)
-        self.column_model = column_detection.load(model_path)
-        self.lexical_model = lexical.load(model_path)
-
-
+        self.transition_model = line_trigram.load(self.model_path)
+        self.emission_model = line_classifier.load(self.model_path)
+        self.column_model = column_detection.load(self.model_path)
+        self.lexical_model = lexical.load(self.model_path)
 
     def inference(self, pdf_path: str, page: int) -> list:
         """
@@ -37,7 +42,7 @@ class TabioEngine():
                 [(cords, table data)]
         """
         return convert_to_json(table_extraction.eval(
-                pdf_path, page, self.transition_model, self.emission_model, self.column_model, self.lexical_model))
+            pdf_path, page, self.transition_model, self.emission_model, self.column_model, self.lexical_model))
 
     def detect(self, pdf_path: str, page: int) -> list:
         """
@@ -54,9 +59,9 @@ class TabioEngine():
         table_areas = table_detection.eval(
             self.transition_model, self.emission_model, self.column_model, self.lexical_model, page_data)
         for index, area in enumerate(table_areas):
-            k = 72.0/300.0
+            k = 72.0 / 300.0
             locations.append(
-                {"top": area.top*k, "left": area.left*k, "bottom": area.bottom*k, "right": area.right*k})
+                {"top": area.top * k, "left": area.left * k, "bottom": area.bottom * k, "right": area.right * k})
         return locations
 
     def train(self, training_dir: str) -> None:
@@ -67,23 +72,10 @@ class TabioEngine():
             Return:
                 None
         """
-        config.in_dir = training_dir
-        if config.enable_column_detection:
-            column_detection.train(self.model_path)
-        line_classifier.train(self.model_path)
-
-    def validate_model(self) -> bool:
-        """
-            File validation
-            Return:
-                True if model files exist
-        """
-        if not os.path.exists(os.path.join(self.model_path, "col_trained_net.pt")):
-            raise InvalidModelConfiguration('col_trained_net.pt not found')
-        if not os.path.exists(os.path.join(self.model_path, "lexical_model.pt")):
-            raise InvalidModelConfiguration('lexical_model.pt not found')
-        if not os.path.exists(os.path.join(self.model_path, 'line_ngram.pt')):
-            raise InvalidModelConfiguration('line_ngram.pt not found')
-        if not os.path.exists(os.path.join(self.model_path, 'trained_net.pt')):
-            raise InvalidModelConfiguration('trained_net.pt not found')
-        return True
+        try:
+            print(f"Training on {training_dir}")
+            config.in_dir = training_dir
+            train.train(self.model_path)
+            print(f"Training finished wrote to {self.model_path}")
+        except Exception as e:
+            print(f"Tabio training failed with error {e}\t{traceback.format_exc()}")

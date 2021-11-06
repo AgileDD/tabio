@@ -1,5 +1,6 @@
 import os
 
+
 def is_safe_path(basedir, path):
     """
         Returns true if a path is safe

@@ -119,12 +119,13 @@ def eval(model, masks):
     return map(lambda h: tabio.config.col_class_inference[h], class_ids)
 
 
-def train(path):
+def train(model_path):
+    print("col det training")
     classes = tabio.config.col_classes
     all_masks = []
     all_col_labels = []
     for page in list(tabio.data_loader.training_pages()):
-        print(page)
+        print(f"preping {page}")
         labeled_boxes = tabio.frontend.read_labels(page)
         lines = tabio.frontend.read_lines(page)
         # def npmap(x): np.array(x, dtype=np.uint8)
@@ -135,13 +136,13 @@ def train(path):
         col_labs = [fake_column_detection(l, labeled_boxes) for l in lines]
         all_masks.extend(list(masks))
         all_col_labels.extend(col_labs)
+        print(labeled_boxes, lines, masks, col_labs)
 
     labels = [classes[x] for x in all_col_labels]
     train_features = np.array(all_masks)/128.0
     train_targets = np.array(labels)
 
-    print(train_targets.shape)
-    print(train_features.shape)
+    print(f"targets {train_targets.shape}\tfeatures {train_features.shape}")
 
     Samples = len(train_targets)
 
@@ -183,7 +184,7 @@ def train(path):
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'column_detection'
-    torch.save(model, os.path.join(path, 'col_trained_net.pt'))
+    torch.save(model, os.path.join(model_path, 'col_trained_net.pt'))
 
 
 def test():

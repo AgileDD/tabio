@@ -1,15 +1,17 @@
 version: "3.9"
+
 services:
   tabio:
     container_name: "Tabio"
     ports:
-      - '8810:80'
+      - '0.0.0.0:8810:80'
     volumes:
-      - './tabio/models:/app/tabio/models'
-      - '../shared_data:/data'
+      - '../tabio_models:/app/tabio/models'
+      - '.:/app'
+      - '../data:/data'
     environment:
       - LOG_LEVEL=info
-      - WORKERS_PER_CORE=4
+      - MAX_WORKERS=1
     build:
       context: ./
       dockerfile: Dockerfile
@@ -18,5 +20,5 @@ services:
         reservations:
           devices:
           - driver: nvidia
-            device_ids: ['0']
+            count: 1
             capabilities: [gpu]

@@ -49,6 +49,10 @@ class LineModel(nn.Module):
         self.double()
 
     def forward(self, x, textf):
+        if textf.size()[1]!=200:
+            print(f"Warning: Found only {textf.size()[1]} dimensions in lexical model, padding ...")
+        pad = nn.ConstantPad1d((0,200-textf.size()[1]),0.0)
+        textf = pad(textf)
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
         x = F.relu(F.max_pool2d(self.conv5_bn(self.conv5(x)), 2))
@@ -76,6 +80,7 @@ def load(path):
 # given a list of features each representing 1 line
 # this evaluates teh score of each class for each feature
 def eval(model, features, lexical_features):
+    print("Running eval")
     features = list(map(np.array, features))
     features = np.array(features)/128.0
     targets = np.array([0]*len(features))
@@ -97,12 +102,13 @@ def eval(model, features, lexical_features):
         # print(outputs.shape[0])
         tuner = torch.tensor([tabio.config.tune]*outputs.shape[0])
         outputs = outputs + tuner
+        print(f"{outputs=}")
         all_scores.extend(list(outputs))
     return all_scores
 
 
-def prepare_data(pages):
-    lexical_model = tabio.lexical.load()
+def prepare_data(pages, lexical_path):
+    lexical_model = tabio.lexical.load(lexical_path)
     classes = tabio.config.classes
     train_features = []
     train_targets = []
@@ -170,8 +176,11 @@ def prepare_data(pages):
     return data.DataLoader(train_dataset, batch_size=10, shuffle=True, drop_last=True)
 
 
-def train(path):
-    train_dataloader = prepare_data(tabio.data_loader.training_pages())
+def train(model_path):
+    print("line classifier training")
+
+    print("preparing data...")
+    train_dataloader = prepare_data(tabio.data_loader.training_pages(), model_path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = LineModel()
@@ -200,7 +209,7 @@ def train(path):
     device = torch.device("cpu")
     model = model.to(device)
     model.__module__ = 'line_classifier'
-    torch.save(model, os.path.join(path, 'trained_net.pt'))
+    torch.save(model, os.path.join(model_path, 'trained_net.pt'))
 
 
 def test():
@@ -255,6 +264,6 @@ def test():
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == '--train':
-        train()
+        train(sys.argv[2])
     else:
         test()

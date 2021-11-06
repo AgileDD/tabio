@@ -58,8 +58,7 @@ def create_training_text(page):
     return (list(lines), list(labels))
 
 
-if __name__ == '__main__':
-
+def train(model_path):
     print('loading...')
     lines = []
     labels = []
@@ -96,4 +95,9 @@ if __name__ == '__main__':
     print(cfr.score(X_test, labels_test))
     Y_test = cfr.predict(X_test)
     print(classification_report(labels_test, Y_test))
-    pickle.dump([tfidf, ts, tfidfw, tsw], open(os.path.join("models", "lexical_model.pt"), "wb"))
+    pickle.dump([tfidf, ts, tfidfw, tsw], open(os.path.join(model_path, "lexical_model.pt"), "wb"))
+    print("finished training lexical model")
+
+
+if __name__ == '__main__':
+    train(sys.argv[1])

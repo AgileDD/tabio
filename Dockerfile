@@ -10,12 +10,12 @@ RUN apt-get -y update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Tabio requirements
-COPY requirements.txt /app/requirements.txt
-RUN python3 -m pip install --upgrade --no-cache-dir pip && \
-    python3 -m pip install --no-cache-dir -r /app/requirements.txt && \
-    python3 -m pip install --no-cache-dir python-multipart ujson
-# Tabio app
-COPY . /app
+WORKDIR /app
 
-ENTRYPOINT [ "/start-reload.sh" ]
+# Tabio requirements
+COPY requirements.txt . 
+RUN python3 -m pip install --upgrade --no-cache-dir pip && \
+    python3 -m pip install --no-cache-dir -r /app/requirements.txt
+
+# Tabio app
+COPY . . 

@@ -1,49 +1,54 @@
-import os
-import traceback
 import glob
+import os
 import tempfile
-from fastapi.responses import RedirectResponse
+import traceback
+from uuid import UUID
+
 from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
+
 from app.tabio_engine import TabioEngine
 from app.util import safe_join
-
-
-class TaskState:
-    def __init__(self):
-        self.status = 0
-
-    def background_work(self, train_func, path):
-        self.status = 1
-        train_func(path)
-        self.status = 0
-
-    def state(self):
-        return self.status
+from . import jobs
 
 
 app = FastAPI(title="Tabio API",
               description="REST API endpoint for running documents through Tabio", redoc_url=None)
-app.tabio_engine: TabioEngine = None
-app.state = TaskState()
+jobs.connect()
 
-@app.on_event("startup")
-async def startup():
-    app.tabio_engine = TabioEngine(os.path.join("/app", "models", "iqc_tabio"))
-    print("Tabio started with model {}".format(app.tabio_engine.model_path))
+
+def run_job(uid, func, *args):
+    job = jobs.find(uid)
+    try:
+        job.result = func(*args)
+        job.status = "complete"
+    except Exception as e:
+        print(f"Job {uid} failed with error {e}\t{traceback.format_exc()}")
+        job.status = "failed"
+    finally:
+        job.save()
+
+
+def start_job(background_tasks, func, *args):
+    new_task = jobs.Job()
+    new_task.save()
+    background_tasks.add_task(run_job, new_task.uid, func, *args)
+    return new_task
 
 
 @app.post("/table_detect/")
 async def table_detect(page: int, file: UploadFile = File(...)):
     """
-        Returns the detected tables coords with table index.
+        Returns the detected tables cords with table index.
     """
+    tabio = TabioEngine(os.path.join("/app",  "tabio", "models", "iqc_tabio"))
     try:
         contents = await file.read()
         junk_file_name = ""
         with tempfile.NamedTemporaryFile() as temp:
             junk_file_name = temp.name
             temp.write(contents)
-            return app.tabio_engine.detect(temp.name, page)
+            await tabio.load()
+            return await tabio.detect(temp.name, page)
     except Exception as e:
         print("Failure with tabio: {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
@@ -57,13 +62,15 @@ async def table_extract(page: int, file: UploadFile = File(...)):
     """
        Returns the detected tables from a page as json with table index.
     """
+    tabio = TabioEngine(os.path.join("/app", "tabio", "models", "iqc_tabio"))
     try:
         contents = await file.read()
         junk_file_name = ""
         with tempfile.NamedTemporaryFile() as temp:
             junk_file_name = temp.name
             temp.write(contents)
-            return app.tabio_engine.inference(temp.name, page)
+            tabio.load()
+            return tabio.inference(temp.name, page)
     except Exception as e:
         print("Failure with tabio: {}\n{}".format(e, traceback.format_exc()))
         raise HTTPException(
@@ -72,23 +79,19 @@ async def table_extract(page: int, file: UploadFile = File(...)):
         [os.remove(x) for x in glob.glob("{}*".format(junk_file_name))]
 
 
-@app.post("/training/")
-def training(dataset_dir: str, background_tasks: BackgroundTasks):
+@app.post("/train/")
+def train(dataset_dir: str, background_tasks: BackgroundTasks):
     """
         Train tabio models
     """
-    if app.state.state() == 0:
-        path = safe_join("/data", os.path.join("/data", dataset_dir))
-        background_tasks.add_task(app.state.background_work, app.tabio_engine.train, path)
-        return {"status": "Training has started"}
-    else:
-        return {"status": "Training is already running"}
+    tabio = TabioEngine(os.path.join("/app", "tabio", "models", "iqc_tabio"))
+    training_data_dir = safe_join("/data", os.path.join("/data", "tabio_training_data", dataset_dir))
+    return start_job(background_tasks, tabio.train, training_data_dir)
 
-@app.get("/training_status/")
-def training_status():
+
+@app.get("/task/{uid}/status")
+def training_status(uid: UUID):
     """
-        Training state of the model
-            0 means not running
-            1 means running
+        Training status
     """
-    return {"state": app.state.state()}
+    return jobs.find(uid)

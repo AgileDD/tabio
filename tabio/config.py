@@ -33,14 +33,14 @@ test_hashes = [
 
 # classes = ['Author', 'Equation', 'FigureCaption', 'FigureText', 'FrameSpareMulticolumn', 'Heading', 'PageFooter', 'PageHeader', 'PageNumber', \
 #    'Paragraph', 'References', 'Sparse', 'Subtitle', 'TableCaption', 'TableFooter', 'TableSparseColumnHeader', 'TableSparseMulticolumn', 'TableSuperHeader', 'Title']
-class_map = {'Author': "Else", 'Equation': "Else", 'FigureCaption': "Else", 'FigureText': "Else", 'FrameSpareMulticolumn': "Table", 'Heading': "Else", 'PageFooter': "Else", 'PageHeader': "Else", 'PageNumber': "Else", 'Paragraph': "Else", 'References': "Else", 'Sparse': "Else", 'Subtitle': "Else", 'TableCaption': "Else",
+class_map = {"Else": "Else", 'Table': 'Table', "table": "Table", 'Author': "Else", 'Equation': "Else", 'FigureCaption': "Else", 'FigureText': "Else", 'FrameSpareMulticolumn': "Table", 'Heading': "Else", 'PageFooter': "Else", 'PageHeader': "Else", 'PageNumber': "Else", 'Paragraph': "Else", 'References': "Else", 'Sparse': "Else", 'Subtitle': "Else", 'TableCaption': "Else",
              'TableFooter': "Else", 'TableSparseColumnHeader': "Table", 'TableSparseMulticolumn': "Table", 'TableSuperHeader': "Table", 'Title': "Else", 'TableSpareMulticolumn': "Table", "FrameSparseMulticolumn": "Table", "TableSparseOther": "Table", "TableCaptionContd": "Else", "TableSparse": "Table", "TableSpareColumnHeader": "Table"}
 
 # If text in the training set is not labeled, then optionally
 # treat this text as the class specified below.
 #
 # To ignore unlabeled text during training, set to `None`
-unlabeled_class = None
+unlabeled_class = "Else"
 
 mapped_classes = ["Table", "Else"]
 classes = mapped_classes
@@ -56,17 +56,21 @@ classes = mapped_classes
 # Disabling column detection speeds up processing and prevents
 # misclassifying a single column as double if it is known that
 # there are no double columns
-enable_column_detection = True
+enable_column_detection = False
 
-col_classes = {"SingleColumn": 0, "DoubleColumn": 1,
-               "None": 2, "DoublColumn": 1, None: 2}
+col_classes = {"SingleColumn": 0, "DoubleColumn": 1, "None": 2, "DoublColumn": 1, None: 2}
 col_class_inference = {0: "SingleColumn", 1: "DoubleColumn", 2: "SingleColumn"}
-tune = [0.4, -0.4]
+
+# TUNE INFO
+# Tune is used to give bias on whether we insert or delete
+# With insertion we will get more data, but may contain junk
+# With deletion we will get less data, but may miss out on information
+# Each item in the list is linked to the mapped_classes
+# E.g. first one is for else, second is is for Table
+tune = [0, 0]
 
 # manually labeled data can be marked with column information as well as a class
 # this function returns (column_class, class)
-
-
 def interpret_label(label):
     if not enable_column_detection:
         return ('SingleColumn', label)
